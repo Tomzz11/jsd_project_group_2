@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Product Detail | PetShop</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="min-h-screen flex flex-col bg-slate-50">
+
+<header class="bg-white shadow ">
+<nav class="bg-white shadow w-full">
+  <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+    
+    <div class="flex items-center gap-2">
+      <img src="pic/colorful_star.png" width="55" height="40" class="rounded" />
+      <span class="font-bold text-slate-800 text-sm">PetShop</span>
+    </div>
+
+    <ul class="hidden md:flex items-center gap-6 text-sm font-medium">
+      <li><a href="index.html" class="hover:text-emerald-600">Home</a></li>
+      <li><a href="products.html" class="hover:text-emerald-600">Products</a></li>
+      <li><a href="#" class="hover:text-emerald-600">Contact</a></li>
+      <li><a href="#" class="hover:text-emerald-600">About</a></li>
+    </ul>
+
+    <div class="flex items-center gap-3">
+      <a href="login.html"
+        class="px-4 py-2 border rounded-lg text-sm hover:bg-slate-100">
+        Login
+      </a>
+      <a href="register.html"
+        class="px-4 py-2 bg-emerald-600 text-white text-sm rounded-lg hover:bg-emerald-700">
+        Register
+      </a>
+    </div>
+  </div>
+</nav>
+</header>
+
+    <main class="flex-1">
+      <section class="max-w-6xl mx-auto px-4 py-10">
+        <nav class="text-[11px] text-slate-500 mb-4">
+          <a href="index.html" class="hover:text-emerald-600">Home</a>
+          <span class="mx-1">/</span>
+          <a href="products.html" class="hover:text-emerald-600">Products</a>
+          <span class="mx-1">/</span>
+          <span class="text-slate-400">Premium Dog Food – Chicken & Rice</span>
+        </nav>
+
+        <div class="grid gap-8 md:grid-cols-2 items-start">
+          <div>
+            <div class="rounded-3xl bg-white border shadow-sm p-4">
+              <div class="rounded-2xl bg-slate-100 aspect-square flex items-center justify-center text-7xl">
+                🐶
+              </div>
+            </div>
+
+            <div class="mt-4 flex gap-2">
+              <div class="flex-1 rounded-xl border-2 border-emerald-500 bg-slate-100 aspect-video flex items-center justify-center text-xl">
+                Front
+              </div>
+              <div class="flex-1 rounded-xl border bg-slate-100 aspect-video flex items-center justify-center text-xs text-slate-500">
+                Nutrition
+              </div>
+              <div class="flex-1 rounded-xl border bg-slate-100 aspect-video flex items-center justify-center text-xs text-slate-500">
+                Size
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            <div>
+              <p class="text-[11px] uppercase tracking-wide text-emerald-600 font-semibold">
+                Dog / Food
+              </p>
+              <h1 class="mt-1 text-2xl md:text-3xl font-bold text-slate-900">
+                Premium Dog Food – Chicken & Rice
+              </h1>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <p class="text-2xl font-bold text-emerald-600">฿890</p>
+              <span class="text-[11px] text-slate-500">
+                In stock • 3kg bag
+              </span>
+            </div>
+
+            <p class="text-sm text-slate-600 leading-relaxed">
+              อาหารสุนัขคุณภาพสูง สูตรไก่และข้าว เหมาะสำหรับสุนัขอายุ 1 ปีขึ้นไป
+              โปรตีนย่อยง่าย ไขมันสมดุล เสริมโอเมก้า 3 และ 6 ช่วยให้ขนสวยสุขภาพดี
+              ไม่มีการเติมสี กลิ่น และสารกันเสียที่เป็นอันตราย
+            </p>
+
+            <ul class="text-xs text-slate-600 space-y-1">
+              <li>• สูตรสมดุลสำหรับสุนัขทุกสายพันธุ์</li>
+              <li>• เสริมวิตามินและแร่ธาตุที่จำเป็น</li>
+              <li>• เหมาะสำหรับสุนัขที่ออกกำลังกายปานกลาง</li>
+              <li>• ไม่มีส่วนผสมของข้าวสาลีและถั่วเหลือง</li>
+            </ul>
+
+            <form class="space-y-4">
+              <div class="flex items-center gap-4">
+                <label class="text-xs font-medium text-slate-700">
+                  Quantity
+                  <input
+                    type="number"
+                    min="1"
+                    value="1"
+                    class="mt-1 w-20 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                  />
+                </label>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  class="inline-flex items-center justify-center rounded-full bg-emerald-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700"
+                >
+                  Add to Cart
+                </button>
+
+              </div>
+            </form>
+
+            <div class="mt-4 rounded-2xl bg-emerald-50 border border-emerald-100 p-3 text-[11px] text-emerald-900">
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="bg-slate-900 text-slate-300 text-xs">
+      <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between gap-2">
+        <p>© 2025 PetShop. All rights reserved.</p>
+        <p class="text-[11px] text-slate-400">
+          <!-- Product Detail page – Image / Price / Description / Add to Cart (UI only) -->
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>
