@@ -1,5 +1,4 @@
-# React Project
-
-This project is built with React + Vite + Tailwind CSS.
-
+# Project
+jsd_project_group_2
+commit ชาตินี้ Deploy ชาติไหน
 
