@@ -11,14 +11,12 @@ export default function PetShop() {
             <div className="flex items-center gap-2">
                 <span className="font-bold text-sm">PetShop</span>
             </div>
-
             <ul className="hidden md:flex items-center gap-6 text-sm font-medium">
                 <Link to="/" className="hover:text-emerald-600">Home</Link>
                 <Link to="/products" className="hover:text-emerald-600">Products</Link>
                 <li><a href="#" >Contact</a></li>
                 <li><a href="#" >About</a></li>
             </ul>
-
             <div className="flex items-center gap-3">
                 <button className="px-4 py-2 border rounded-lg text-sm hover:bg-slate-100">
                 Login
