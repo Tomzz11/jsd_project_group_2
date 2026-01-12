@@ -28,7 +28,7 @@ const Navbar = () => {
             {/* Right */}
             <div className="relative z-10 flex gap-4">
               <span>
-                <a href="">🐬</a>
+                <Link to="UserDashboard">👦</Link>
               </span>
               <span>
                 <a href="">❤️</a>
