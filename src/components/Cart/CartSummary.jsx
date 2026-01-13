@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 export default function CartSummary({ total, onCheckout}) {
     return  (
         <div className="bg-gray-50 p-6 rounded-xl" >
@@ -19,12 +21,14 @@ export default function CartSummary({ total, onCheckout}) {
             <span>${total.toFixed(2)}</span>
         </div>
 
+      
         <button 
             className="w-full mt-6 bg-gray-800 text-white py-2 rounded-lg hover:bg-gray-900"
             onClick={onCheckout} 
         >
             Checkout
         </button>
+        
     </div>
     );
 }
