@@ -5,20 +5,22 @@ const Navbar = () => {
   return (
         <nav
             className="relative z-20 h-20 flex items-center justify-between px-10
-                bg-pink-100/70 backdrop-blur-sm shadow-sm"
+                 backdrop-blur-sm shadow-sm"
           >
             {/* Left */}
             <div className="relative z-10 flex items-center gap-2">
+              <Link to="/">
               <img className=" h-30 w-30 pt-3.5" src="IMG_8372.png" alt="" />
+              </Link>
             </div>
 
             {/* Center */}
-            <ul className="relative z-10 flex gap-6">
-              <li className="text-orange-400">
-                <a href="">Home</a>
+            <ul className="relative z-10 flex gap-10 text-xl font-semibold">
+              <li className="">
+                <Link to="/">Home</Link>
               </li>
               <li>
-                <a href="">Shop</a>
+                <Link to="Products">Shop</Link>
               </li>
               <li>
                 <a href="">Contact</a>

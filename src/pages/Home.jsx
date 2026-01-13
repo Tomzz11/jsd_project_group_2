@@ -18,7 +18,7 @@ const App = () => {
         </div> */}
       </header>
       <main>
-         <div>
+         <div className="">
             <video
             className="absolute inset-0 z-0 w-full h-325 object-cover"
             src="/Video Project 2.mp4"
@@ -27,15 +27,16 @@ const App = () => {
             muted
             playsInline
           ></video>
-          </div>
-          <div class="relative z-10  text-white h-[576px] w-400 mx-auto ">
-            <div class="mt- max-w-xl p-8 rounded-2xl bg-white/10 backdrop-blur-md border border-white/30 shadow-xl ">
+        
+            <div class="text-white mt- max-w-xl p-8 rounded-2xl bg-white/10 backdrop-blur-md border border-white/30 shadow-xl ">
             <Link to="/products">
               <h1 class="text-4xl font-bold mb-4">Welcome to Pet Paradise</h1>
               </Link>
             
             </div>
+          
           </div>
+        
         {/* <section id="listitem" className="bg-">
           <Carousel
             plugins={[
