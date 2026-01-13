@@ -54,14 +54,19 @@ export default function ShoppingCart() {
 
     return (
         <div className="min-h-screen bg-gray-100 p-6">
-            <div className="mx-auto max-w-5xl">
-                <h1 className="mb-6 text-2xl font-bold text-gray-800">
-                    Shopping Cart
-                </h1>
+            <div className="mx-auto max-w-6xl">
+                <div className="mb-6">
+                    <h1 className="text-2xl font-bold text-gray-800">
+                        Shopping Cart
+                    </h1>
+                    <p className="text-sm text-gray-500">
+                        Review your items before checkout
+                    </p>
+                </div>
 
                 <button
                     onClick={() =>  alert("Back to shop")}
-                    className="mb-4 text-sm text-blue-600 hover:underline"
+                    className="mt-3 mb-3 inline-block text-sm text-blue-600 hover:underline"
                 >
                     ← Back to shop
                 </button>
@@ -75,10 +80,20 @@ export default function ShoppingCart() {
                     {/* Cart Items */}
                     <div className={`rounded-lg p-4 ${cartItems.length === 0 ? "bg-gray-50 text-center" : "bg-white shadow"} lg:col-span-2`}>
 
+                        {/* Section Title */}
+                        <h2 className="mb-4 text-lg font-semibold text-gray-700">
+                            Cart Items
+                        </h2>
+
                         { cartItems.length ===0 ?(
-                            <p className="py-10 text-gray-400">
-                                🛒Your cart is empty
-                            </p>
+                            <div className="py-10 text-gray-400">
+                                <p className="text-lg">
+                                    🛒Your cart is empty
+                                </p>
+                                <p className="mt-1 text-sm">
+                                    Add some pet products to get started
+                                </p>
+                            </div>
                         ) : ( 
                           <div className="space-y-4">
                             {cartItems.map(item => (
