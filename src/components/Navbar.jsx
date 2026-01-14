@@ -42,6 +42,12 @@ const Navbar = () => {
                     {/* ไว้สำหรับแจ้งเตือนจำนวนสินค้าในตระก้า */}
                   </span>
                 </Link>
+                 <Link to="AdminProducts">
+                  🗝️
+                  <span className="absolute -top-2 -right-2 text-xs bg-orange-400 text-white rounded-full px-1">
+                    {/* ไว้สำหรับแจ้งเตือนจำนวนสินค้าในตระก้า */}
+                  </span>
+                </Link>
               </span>
             </div>
           </nav>

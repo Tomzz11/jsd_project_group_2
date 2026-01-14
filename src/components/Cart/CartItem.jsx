@@ -37,7 +37,7 @@ export default function CartItem({ item, onIncrease, onDecrease, onRemove}) {
       {/* TOTAL + REMOVE */}
       <div className="text-right min-w-22.5">
         <p className="font-semibold text-gray-800">
-          ${(item.price * item.quantity).toFixed(2)}
+          ฿{(item.price * item.quantity).toFixed(2)}
         </p>
         <button
           className="text-red-500 text-sm hover:underline"
