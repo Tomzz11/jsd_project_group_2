@@ -22,9 +22,9 @@ const Navbar = () => {
   }
 
   return (
-    <nav className="relative z-20 h-20 flex items-center justify-between px-10">
+    <nav className="relative z-20 h-20 flex items-center justify-between px-10  ">
       {/* Left */}
-      <div className="relative z-10 flex items-center gap-2">
+      <div className="relative z-10 flex items-center gap-2 ">
         <Link to="/">
           <img className="h-20 w-20 pt-3.5" src="IMG_8372.png" alt="" />
         </Link>
@@ -32,15 +32,16 @@ const Navbar = () => {
 
       {/* Right */}
       <div className="relative z-10 flex gap-4">
-        <ul className="relative z-10 flex gap-10 text-xl font-semibold items-center">
-          <li className="hover:bg-blue-100 rounded-full">
+        <ul className="relative z-10 flex gap-10 text-xl font-semibold items-center bg-white/60 backdrop-blur-md shadow-sm
+                 rounded-full px-6 py-3 text-gray-900">
+          <li className="hover:text-blue-600 rounded-full">
             <Link to="/">
               <i className="bx bx-home"></i>
             </Link>
           </li>
 
           {/* user icon */}
-          <li className="hover:bg-blue-100 rounded-full ">
+          <li className="hover:text-blue-600 rounded-full ">
             <Link to={authed ? "/UserDashboard" : "/login"}>
               <i className="bx bx-user"></i>
             </Link>
@@ -49,14 +50,14 @@ const Navbar = () => {
 
           {/* admin only */}
           {user?.role === "admin" && (
-            <li className="hover:bg-blue-100 rounded-full">
+            <li className="hover:text-blue-600 rounded-full">
               <Link to="AdminProducts">
                 <i className="bx bx-key"></i>
               </Link>
             </li>
           )}
 
-          <li className="relative hover:bg-blue-100 rounded-full">
+          <li className="relative hover:text-blue-600 rounded-full">
             <Link to={authed ? "/Cart" : "/login"}>
               <i className="bx bx-cart-alt"></i>
               <span className="absolute -top-2 -right-2 text-xs bg-orange-400 text-white rounded-full px-1">
