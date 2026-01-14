@@ -17,7 +17,7 @@ const App = () => {
       <main>
         <div className=" h-210 w-full overflow-hidden">
           <video
-            className="absolute inset-0 z-0 h-full w-full object-cover"
+            className="absolute inset-0 z-0 h-230 w-full object-cover"
             src="/BG.mp4"
             autoPlay
             loop

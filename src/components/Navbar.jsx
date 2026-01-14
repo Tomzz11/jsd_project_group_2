@@ -33,34 +33,31 @@ const Navbar = () => {
       {/* Right */}
       <div className="relative z-10 flex gap-4">
         <ul className="relative z-10 flex gap-10 text-xl font-semibold items-center">
-          <li className="hover:text-blue-500">
+          <li className="hover:bg-blue-100 rounded-full">
             <Link to="/">
               <i className="bx bx-home"></i>
             </Link>
           </li>
 
           {/* user icon */}
-          <li className="hover:text-blue-500">
+          <li className="hover:bg-blue-100 rounded-full ">
             <Link to={authed ? "/UserDashboard" : "/login"}>
               <i className="bx bx-user"></i>
             </Link>
           </li>
 
-          <li className="hover:text-blue-500">
-            <i className="bx bx-heart"></i>
-          </li>
 
           {/* admin only */}
           {user?.role === "admin" && (
-            <li className="hover:text-blue-500">
+            <li className="hover:bg-blue-100 rounded-full">
               <Link to="AdminProducts">
                 <i className="bx bx-key"></i>
               </Link>
             </li>
           )}
 
-          <li className="relative hover:text-blue-500">
-            <Link to="Cart">
+          <li className="relative hover:bg-blue-100 rounded-full">
+            <Link to={authed ? "/Cart" : "/login"}>
               <i className="bx bx-cart-alt"></i>
               <span className="absolute -top-2 -right-2 text-xs bg-orange-400 text-white rounded-full px-1">
                 50
