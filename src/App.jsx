@@ -29,6 +29,9 @@ const router = createBrowserRouter([
       { path: "Payment", element: <Payment /> },
       { path: "AdminProducts", element: <AdminProducts /> },
       { path: "add-product", element: <AddProduct /> },
+      { path: "login", element: <Login /> },
+      { path: "register", element: <Register /> },
+
     ],
   },
 ]);
