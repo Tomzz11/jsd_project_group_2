@@ -1,9 +1,4 @@
 import React, { useState } from "react";
-<<<<<<< HEAD
-
-export const AdminProducts = () => {
-  // ===== State =====
-=======
 import { useNavigate } from "react-router-dom";
 
 export const AdminProducts = () => {
@@ -20,7 +15,6 @@ export const AdminProducts = () => {
   /* =========================
      Product Data
   ========================== */
->>>>>>> develop
   const [data, setData] = useState([
     { image: "—", name: "Product 1", category: "Cat A", price: "$10" },
     { image: "—", name: "Product 2", category: "Cat B", price: "$20" },
@@ -49,21 +43,13 @@ export const AdminProducts = () => {
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const [currentPage, setCurrentPage] = useState(1);
 
-<<<<<<< HEAD
-  // ===== Functions =====
-=======
   /* =========================
      Handlers
   ========================== */
->>>>>>> develop
   const openEdit = (index) => {
     if (!data[index]) return;
     setEditIndex(index);
-<<<<<<< HEAD
-    setEditForm(item);
-=======
     setEditForm(data[index]);
->>>>>>> develop
   };
 
   const closeModal = () => {
@@ -78,7 +64,7 @@ export const AdminProducts = () => {
   };
 
   const deleteProduct = (index) => {
-    if (window.confirm("Are you sure?")) {
+    if (window.confirm("Are you sure you want to delete this product?")) {
       setData(data.filter((_, i) => i !== index));
     }
   };
@@ -91,14 +77,6 @@ export const AdminProducts = () => {
     reader.readAsDataURL(file);
   };
 
-<<<<<<< HEAD
-  // ✅ return อยู่ใน component
-  return (
-    <div className="flex flex-col md:flex-row p-4 md:p-6 gap-4">
-      {/* Sidebar */}
-      <aside className="w-full md:w-52 bg-gray-200 p-2 mt-16">
-        <h2 className="text-3xl font-bold text-center mb-4">
-=======
   /* =========================
      Pagination Render
   ========================== */
@@ -129,23 +107,10 @@ export const AdminProducts = () => {
       {/* ================= Sidebar ================= */}
       <aside className="w-full md:w-52 bg-gray-200 p-2 max-h-96 overflow-y-auto mt-16">
         <h2 className="text-3xl font-bold text-center px-4 py-3 mb-4">
->>>>>>> develop
           Products
         </h2>
 
         <ul className="space-y-2">
-<<<<<<< HEAD
-          {["Products List", "Add Products", "Edit Products"].map(
-            (item) => (
-              <li key={item}>
-                <a className="flex gap-3 items-center p-2 hover:bg-gray-300 rounded">
-                  <div className="w-2 h-2 bg-black" />
-                  {item}
-                </a>
-              </li>
-            )
-          )}
-=======
           <li>
             <button
               onClick={() => navigate("/add-product")}
@@ -175,36 +140,11 @@ export const AdminProducts = () => {
               Log out
             </button>
           </li>
->>>>>>> develop
         </ul>
       </aside>
 
       {/* ================= Main ================= */}
       <main className="flex-1 p-4 md:p-8">
-<<<<<<< HEAD
-        <section className="bg-gray-200 p-6 rounded">
-          <table className="w-full">
-            <tbody>
-              {[...Array(maxRows)].map((_, i) => (
-                <tr key={i}>
-                  <td>{data[i]?.name || "—"}</td>
-                  <td>
-                    {data[i] && (
-                      <>
-                        <button onClick={() => openEdit(i)}>
-                          ✏️
-                        </button>
-                        <button onClick={() => deleteProduct(i)}>
-                          🗑️
-                        </button>
-                      </>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-=======
         {/* Top Buttons */}
         <div className="flex justify-end gap-4 mb-6">
           <button className="bg-yellow-100 px-6 py-2 rounded-md font-semibold">
@@ -312,37 +252,24 @@ export const AdminProducts = () => {
               Next
             </button>
           </div>
->>>>>>> develop
         </section>
       </main>
 
       {/* ================= Edit Modal ================= */}
       {editIndex !== null && (
-<<<<<<< HEAD
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded w-96">
-=======
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-2">
           <div className="bg-white p-6 rounded shadow-lg w-96">
             <h2 className="text-xl font-semibold mb-4">
               Edit Product
             </h2>
 
->>>>>>> develop
             <input
+              className="border p-2 w-full mb-2"
               value={editForm.name}
               onChange={(e) =>
                 setEditForm({ ...editForm, name: e.target.value })
               }
             />
-<<<<<<< HEAD
-            <input
-              type="file"
-              onChange={(e) => handleImage(e.target.files[0])}
-            />
-            <button onClick={saveEdit}>Save</button>
-            <button onClick={closeModal}>Cancel</button>
-=======
             <input
               className="border p-2 w-full mb-2"
               value={editForm.category}
@@ -381,7 +308,6 @@ export const AdminProducts = () => {
                 Save
               </button>
             </div>
->>>>>>> develop
           </div>
         </div>
       )}
