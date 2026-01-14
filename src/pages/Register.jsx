@@ -1,199 +1,229 @@
-import React from "react";
+import React, { useMemo, useState } from "react"
 
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button"
 import {
   Field,
   FieldDescription,
   FieldGroup,
   FieldLabel,
   FieldLegend,
-  FieldSeparator,
   FieldSet,
-} from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
+} from "@/components/ui/field"
+import { Input } from "@/components/ui/input"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Link } from "react-router-dom";
+} from "@/components/ui/select"
+import { Link, useNavigate } from "react-router-dom"
 
+import { registerMock, loginMock } from "@/lib/auth"
 
 const Register = () => {
+  const navigate = useNavigate()
+
+  const [form, setForm] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    phone: "",
+    dobDay: "",
+    dobMonth: "",
+    dobYear: "",
+  })
+
+  const [error, setError] = useState("")
+
+  const years = useMemo(() => {
+    // ให้เป็นปีสมจริง เช่น 1950 - 2026
+    const currentYear = new Date().getFullYear()
+    const list = []
+    for (let y = currentYear; y >= 1950; y--) list.push(String(y))
+    return list
+  }, [])
+
+  const days = useMemo(() => Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, "0")), [])
+  const months = useMemo(() => Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0")), [])
+
+  const setField = (key) => (e) => {
+    setForm((prev) => ({ ...prev, [key]: e.target.value }))
+  }
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    setError("")
+
+    // validation เบื้องต้น
+    if (!form.firstName || !form.lastName) return setError("Please enter name and lastname")
+    if (!form.email) return setError("Please enter email")
+    if (!form.password || form.password.length < 4) return setError("Password must be at least 4 characters")
+    if (!form.phone) return setError("Please enter phone")
+    if (!form.dobDay || !form.dobMonth || !form.dobYear) return setError("Please select date of birth")
+
+    try {
+      // 1) register (เพิ่ม user ลง localStorage)
+      registerMock({
+        email: form.email,
+        password: form.password,
+        // เผื่ออยากเก็บ profile เพิ่ม (ถ้า auth.js รองรับ)
+        profile: {
+          displayName: `${form.firstName} ${form.lastName}`,
+          firstName: form.firstName,
+          lastName: form.lastName,
+          phone: form.phone,
+          birthday: `${form.dobYear}-${form.dobMonth}-${form.dobDay}`,
+        },
+      })
+
+      // 2) login อัตโนมัติ
+      loginMock({ email: form.email, password: form.password })
+
+      // 3) ไป dashboard
+      navigate("/UserDashboard", { replace: true })
+    } catch (err) {
+      setError(err?.message || "Register failed")
+    }
+  }
+
   return (
-    <>
-      <div className="flex min-h-screen items-center justify-center  p-4  bg-center  absolute inset-0 z-0 " style={{ backgroundImage: "url('/ryan-walton-AbNO2iejoXA-unsplash.jpg')" } }>
-        <div className=" w-full max-w-2xl mx-auto py-10">
-          <form>
-            <FieldGroup>
-              <FieldSet>
-                <FieldLegend>Register</FieldLegend>
-                <FieldDescription>
-                  All transactions are secure and encrypted
-                </FieldDescription>
-                <FieldGroup>
+    <div
+      className="flex min-h-screen items-center justify-center p-4 bg-center absolute inset-0 z-0"
+      style={{ backgroundImage: "url('/ryan-walton-AbNO2iejoXA-unsplash.jpg')" }}
+    >
+      <div className="w-full max-w-2xl mx-auto py-10">
+        <form onSubmit={handleSubmit}>
+          <FieldGroup>
+            <FieldSet>
+              <FieldLegend>Register</FieldLegend>
+              <FieldDescription>All transactions are secure and encrypted</FieldDescription>
+
+              <FieldGroup>
+                {error && <p className="text-sm text-red-500">{error}</p>}
+
+                <Field>
+                  <FieldLabel>Name</FieldLabel>
+                  <Input
+                    placeholder="Enter your name"
+                    required
+                    value={form.firstName}
+                    onChange={setField("firstName")}
+                  />
+
+                  <FieldLabel className="mt-3">Lastname</FieldLabel>
+                  <Input
+                    placeholder="Enter your lastname"
+                    required
+                    value={form.lastName}
+                    onChange={setField("lastName")}
+                  />
+                </Field>
+
+                <Field>
+                  <FieldLabel>Email</FieldLabel>
+                  <Input
+                    id="useremail"
+                    placeholder="example@gmail.com"
+                    required
+                    type="email"
+                    value={form.email}
+                    onChange={setField("email")}
+                  />
+
+                  <FieldLabel className="mt-3">Password</FieldLabel>
+                  <Input
+                    id="userpassword"
+                    placeholder="Enter your password"
+                    required
+                    type="password"
+                    value={form.password}
+                    onChange={setField("password")}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Mock register: password อย่างน้อย 4 ตัว</p>
+                </Field>
+
+                <div className="grid grid-cols-3 gap-4">
                   <Field>
-                    <FieldLabel htmlFor="checkout-7j9-card-name-43j">
-                      Name
-                    </FieldLabel>
-                    <Input
-                      id="checkout-7j9-card-name-43j"
-                      placeholder="Enter your name"
-                      required
-                    />
-                    <FieldLabel htmlFor="checkout-7j9-card-name-43j">
-                      Lastname
-                    </FieldLabel>
-                    <Input
-                      id="checkout-7j9-card-name-43j"
-                      placeholder="Enter your lastname"
-                      required
-                    />
+                    <FieldLabel>Date of Birth</FieldLabel>
+                    <Select value={form.dobDay} onValueChange={(v) => setForm((p) => ({ ...p, dobDay: v }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="DD" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {days.map((d) => (
+                          <SelectItem key={d} value={d}>
+                            {d}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </Field>
+
                   <Field>
-                    <FieldLabel htmlFor="">Email</FieldLabel>
-                    <Input
-                      id="useremail"
-                      placeholder="example@gmail.com"
-                      required
-                      type="email"
-                    />
-                    <FieldLabel htmlFor="">Password</FieldLabel>
-                    <Input
-                      id="userpassword"
-                      placeholder="Enter your password"
-                      required
-                      type="password"
-                    />
+                    <FieldLabel>Month of Birth</FieldLabel>
+                    <Select value={form.dobMonth} onValueChange={(v) => setForm((p) => ({ ...p, dobMonth: v }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="MM" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {months.map((m) => (
+                          <SelectItem key={m} value={m}>
+                            {m}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </Field>
-                  <div className="grid grid-cols-3 gap-4">
-                    <Field>
-                      <FieldLabel htmlFor="checkout-exp-month-ts6">
-                        Date of Birth
-                      </FieldLabel>
-                      <Select defaultValue="">
-                        <SelectTrigger id="checkout-exp-month-ts6">
-                          <SelectValue placeholder="Date" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="01">01</SelectItem>
-                          <SelectItem value="02">02</SelectItem>
-                          <SelectItem value="03">03</SelectItem>
-                          <SelectItem value="04">04</SelectItem>
-                          <SelectItem value="05">05</SelectItem>
-                          <SelectItem value="06">06</SelectItem>
-                          <SelectItem value="07">07</SelectItem>
-                          <SelectItem value="08">08</SelectItem>
-                          <SelectItem value="09">09</SelectItem>
-                          <SelectItem value="10">10</SelectItem>
-                          <SelectItem value="11">11</SelectItem>
-                          <SelectItem value="12">12</SelectItem>
-                          <SelectItem value="01">01</SelectItem>
-                          <SelectItem value="02">02</SelectItem>
-                          <SelectItem value="03">03</SelectItem>
-                          <SelectItem value="04">04</SelectItem>
-                          <SelectItem value="05">05</SelectItem>
-                          <SelectItem value="06">06</SelectItem>
-                          <SelectItem value="07">07</SelectItem>
-                          <SelectItem value="08">08</SelectItem>
-                          <SelectItem value="09">09</SelectItem>
-                          <SelectItem value="10">10</SelectItem>
-                          <SelectItem value="11">11</SelectItem>
-                          <SelectItem value="12">12</SelectItem>
-                          <SelectItem value="13">13</SelectItem>
-                          <SelectItem value="14">14</SelectItem>
-                          <SelectItem value="15">15</SelectItem>
-                          <SelectItem value="16">16</SelectItem>
-                          <SelectItem value="17">17</SelectItem>
-                          <SelectItem value="18">18</SelectItem>
-                          <SelectItem value="19">19</SelectItem>
-                          <SelectItem value="20">20</SelectItem>
-                          <SelectItem value="21">21</SelectItem>
-                          <SelectItem value="22">22</SelectItem>
-                          <SelectItem value="23">23</SelectItem>
-                          <SelectItem value="24">24</SelectItem>
-                          <SelectItem value="25">25</SelectItem>
-                          <SelectItem value="26">26</SelectItem>
-                          <SelectItem value="27">27</SelectItem>
-                          <SelectItem value="28">28</SelectItem>
-                          <SelectItem value="29">29</SelectItem>
-                          <SelectItem value="30">30</SelectItem>
-                          <SelectItem value="31">31</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </Field>
-                    <Field>
-                      <FieldLabel htmlFor="checkout-exp-month-ts6">
-                        Mont of Birth
-                      </FieldLabel>
-                      <Select defaultValue="">
-                        <SelectTrigger id="checkout-exp-month-ts6">
-                          <SelectValue placeholder="MM" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="01">01</SelectItem>
-                          <SelectItem value="02">02</SelectItem>
-                          <SelectItem value="03">03</SelectItem>
-                          <SelectItem value="04">04</SelectItem>
-                          <SelectItem value="05">05</SelectItem>
-                          <SelectItem value="06">06</SelectItem>
-                          <SelectItem value="07">07</SelectItem>
-                          <SelectItem value="08">08</SelectItem>
-                          <SelectItem value="09">09</SelectItem>
-                          <SelectItem value="10">10</SelectItem>
-                          <SelectItem value="11">11</SelectItem>
-                          <SelectItem value="12">12</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </Field>
-                    <Field>
-                      <FieldLabel htmlFor="checkout-7j9-exp-year-f59">
-                        Year
-                      </FieldLabel>
-                      <Select defaultValue="">
-                        <SelectTrigger id="checkout-7j9-exp-year-f59">
-                          <SelectValue placeholder="YYYY" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="2024">2024</SelectItem>
-                          <SelectItem value="2025">2025</SelectItem>
-                          <SelectItem value="2026">2026</SelectItem>
-                          <SelectItem value="2027">2027</SelectItem>
-                          <SelectItem value="2028">2028</SelectItem>
-                          <SelectItem value="2029">2029</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </Field>
-                  </div>
-                  <FieldLabel htmlFor="checkout-7j9-card-name-43j">
-                    Phone
-                  </FieldLabel>
+
+                  <Field>
+                    <FieldLabel>Year</FieldLabel>
+                    <Select value={form.dobYear} onValueChange={(v) => setForm((p) => ({ ...p, dobYear: v }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="YYYY" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {years.map((y) => (
+                          <SelectItem key={y} value={y}>
+                            {y}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                </div>
+
+                <Field>
+                  <FieldLabel>Phone</FieldLabel>
                   <Input
                     id="userphone"
                     placeholder="Enter your phone number"
                     required
                     type="tel"
+                    value={form.phone}
+                    onChange={setField("phone")}
                   />
-                </FieldGroup>
-              </FieldSet>
-              <Field orientation="horizontal">
-                <Button type="submit" className="w-20 h-9">Submit</Button>
-                <Link to="/Login"  >
+                </Field>
+              </FieldGroup>
+            </FieldSet>
+
+            <Field orientation="horizontal">
+              <Button type="submit" className="w-20 h-9">
+                Submit
+              </Button>
+
+              <Link to="/Login">
                 <Button variant="outline" type="button" className="w-20 h-9">
                   Back
                 </Button>
-                </Link>
-              </Field>
-            </FieldGroup>
-          </form>
-        </div>
+              </Link>
+            </Field>
+          </FieldGroup>
+        </form>
       </div>
-    </>
-  );
-};
+    </div>
+  )
+}
 
-export default Register;
+export default Register

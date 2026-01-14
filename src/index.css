@@ -119,6 +119,12 @@
   }
   body {
     @apply bg-background text-foreground;
+    cursor: none;
   }
+}
+button,
+a,
+[role="button"] {
+  cursor: none !important;
 }
 

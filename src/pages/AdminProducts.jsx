@@ -103,7 +103,7 @@ export const AdminProducts = () => {
      Render
   ========================== */
   return (
-    <div className="flex flex-col md:flex-row p-4 md:p-6 gap-4">
+    <div className=" flex flex-col md:flex-row p-4 md:p-6 gap-4">
       {/* ================= Sidebar ================= */}
       <aside className="w-full md:w-52 bg-gray-200 p-2 max-h-96 overflow-y-auto mt-16">
         <h2 className="text-3xl font-bold text-center px-4 py-3 mb-4">
