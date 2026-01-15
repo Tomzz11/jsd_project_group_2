@@ -51,12 +51,12 @@ const Login = () => {
   <CardContent>
     
     <p> <p p className="font-bold">For user</p>  user@maipaws.com</p>
-    <p>password: 123456</p>
+    <p>password: 1234</p>
     <p><p className="font-bold">For Admin</p> admin@maipaws.com</p>
-    <p>password: 123456</p>
+    <p>password: 1234</p>
     <br />
     <CardDescription className="text-red-500">
-            หากเข้าใช้งานครั้งแรก กรุณาสมัครสมาชิกก่อน
+            สามารถ sign up ใหม่โดยกำหนด email และ     password เพื่อเข้าสู่ระบบทดสอบได้
           </CardDescription>
   </CardContent>
   
