@@ -40,4 +40,19 @@ export const orders = [
      shipping: 30,
      total: 245, 
      },
+      {id: "2024", 
+     date: "12 Nov 2025", 
+     time: "11.42",
+     status: "Completed",
+     paymentStatus: "Paid (Simulated)",
+     shippingAddress:"456 Sukumvit road Bangkok",
+     items: [
+        { name: "Sheba Pouch Tuna and Salmon", price: 23, quantity: 1 },
+        { name: "Me O Creammy Treat Salmon Flavor 15g. pack 20", price: 225, quantity: 2},
+        {name: "Bearing Cat Litter Spray Cat Baby Powder Scented 250ml.", price: 161, quantity:1}
+     ],
+     subtotal: 634,
+     shipping: 50,
+     total:684, 
+    },
 ];

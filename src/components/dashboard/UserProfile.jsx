@@ -24,7 +24,7 @@ export default function UserProfile() {
     });
 
     return (
-        <div  className="bg-white rounded-xl shadow p-6 max-w-xl">
+        <div  className="w-full">
             <h2 className="text-xl font-bold mb-4">
                 My Profile
             </h2>
