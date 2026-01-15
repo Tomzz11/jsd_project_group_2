@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { FaSearch, FaFilter, FaTimes } from 'react-icons/fa';
-import ProductCard from '../components/ProductCard';
-import Loading from '../components/Loading';
+// import ProductCard from '../components/ProductCard';
+// import Loading from '../components/Loading';
 import { productAPI } from '../services/api';
 
 const Products = () => {
@@ -190,13 +190,14 @@ const Products = () => {
 
         {/* Products Grid */}
         {loading ? (
-          <Loading />
+          // <Loading /> 
+          <div>    </div>
         ) : products.length > 0 ? (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {products.map((product) => (
+              {/* {products.map((product) => (
                 <ProductCard key={product._id} product={product} />
-              ))}
+              ))} */}
             </div>
 
             {/* Pagination */}
