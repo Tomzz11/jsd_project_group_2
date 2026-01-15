@@ -5,7 +5,7 @@ import ProductCard from '../components/ProductCard';
 import Loading from '../components/Loading';
 import { productAPI } from '../services/api';
 
-const ProductsPage = () => {
+const Products = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
