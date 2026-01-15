@@ -11,6 +11,8 @@ import Autoplay from "embla-carousel-autoplay";
 import { Link } from "react-router-dom";
 import { products } from "@/components/mockdata/products";
 
+
+
 const App = () => {
   return (
     <>
