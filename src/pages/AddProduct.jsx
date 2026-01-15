@@ -2,17 +2,21 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function AddProduct() {
-   /* =========================
-     Navigation
-  ========================== */
   const navigate = useNavigate();
+
+  // ใส่ useEffect เพื่อคุมสีพื้นหลังให้เหมือนหน้า Admin
+  useEffect(() => {
+    document.body.style.backgroundColor = "#FFF8EE"; // gray-100
+    return () => {
+      document.body.style.backgroundColor = ""; 
+    };
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("adminToken");
     navigate("/login");
   };
 
-  // ===== State =====
   const [form, setForm] = useState({
     name: "",
     category: "",
@@ -20,13 +24,11 @@ export default function AddProduct() {
     image: null,
   });
 
-  // ===== Image Upload =====
   const handleImage = (file) => {
     if (!file) {
       setForm({ ...form, image: null });
       return;
     }
-
     const reader = new FileReader();
     reader.onload = () => {
       setForm({ ...form, image: reader.result });
@@ -34,35 +36,23 @@ export default function AddProduct() {
     reader.readAsDataURL(file);
   };
 
-  // ===== Save Draft =====
   const saveDraft = () => {
     localStorage.setItem("productDraft", JSON.stringify(form));
     alert("บันทึกร่างเรียบร้อย");
   };
 
-  // ===== Cancel =====
   const cancelForm = () => {
-    setForm({
-      name: "",
-      category: "",
-      price: "",
-      image: null,
-    });
+    setForm({ name: "", category: "", price: "", image: null });
   };
 
-  // ===== Submit =====
   const submitForm = (e) => {
     e.preventDefault();
-
-    // 🔥 ตรงนี้เอาไปต่อ API / state กลางได้
     console.log("New Product:", form);
-
     alert("บันทึกสินค้าเรียบร้อยแล้ว!");
     cancelForm();
     localStorage.removeItem("productDraft");
   };
 
-  // ===== Load Draft =====
   useEffect(() => {
     const draft = JSON.parse(localStorage.getItem("productDraft"));
     if (draft) {
@@ -71,10 +61,11 @@ export default function AddProduct() {
   }, []);
 
   return (
-    <div className="flex flex-col md:flex-row p-4 md:p-6 gap-4">
+    <div className="flex flex-col md:flex-row p-4 md:p-6 gap-6 min-h-screen">
+
       {/* Sidebar */}
-      <aside className="w-full md:w-52 bg-gray-200 p-2 max-h-96 overflow-y-auto mt-16">
-        <h2 className="text-3xl font-bold text-center px-4 py-3 mb-4">
+      <aside className="w-full md:w-52 bg-[#ffeecb] p-3 h-fit mt-16 rounded-xl shadow-md self-start">
+        <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">
           Products
         </h2>
 
@@ -82,126 +73,132 @@ export default function AddProduct() {
           <li>
             <button
               onClick={() => navigate("/add-product")}
-              className="flex gap-3 items-center p-2 rounded hover:bg-gray-300 w-full text-left"
+              className="flex gap-3 items-center p-2 rounded bg-white/40 w-full text-left font-semibold"
             >
-              <div className="w-2 h-2 bg-black" />
+              <div className="w-2 h-2 bg-gray-800 rounded-full" />
               Add Products
             </button>
           </li>
 
           <li>
             <button
-              onClick={() => navigate("/admin/profile")}
-              className="flex gap-3 items-center p-2 rounded hover:bg-gray-300 w-full text-left"
+              onClick={() => navigate("/AdminProducts")}
+              className="flex gap-3 items-center p-2 rounded hover:bg-white/30 w-full text-left"
             >
-              <div className="w-2 h-2 bg-black" />
-              Admin
+              <div className="w-2 h-2 bg-gray-600 rounded-full" />
+              Manage List
             </button>
           </li>
 
           <li>
             <button
               onClick={handleLogout}
-              className="flex gap-3 items-center p-2 rounded hover:bg-gray-300 w-full text-left"
+              className="flex gap-3 items-center p-2 rounded hover:bg-white/30 w-full text-left text-red-700 font-medium"
             >
-              <div className="w-2 h-2 bg-black" />
+              <div className="w-2 h-2 bg-red-700 rounded-full" />
               Log out
             </button>
           </li>
         </ul>
       </aside>
 
-      {/* Main */}
-      <main className="flex-1 md:p-10 bg-gray-200 rounded-md">
-        <h3 className="text-2xl font-bold text-center py-5 mb-4">
-          Add New Product
-        </h3>
+      {/* Main - ปรับให้เป็นการ์ดสีขาวตัดกับพื้นหลังเทา */}
+      <main className="flex-1 p-2">
+        <section className="bg-white p-6 md:p-10 rounded-xl shadow-sm border border-gray-100 max-w-3xl mx-auto">
+          <h3 className="text-2xl font-bold text-gray-800 mb-8 border-b pb-4">
+            Add New Product
+          </h3>
 
-        <form
-          onSubmit={submitForm}
-          className="bg-gray-300 p-6 rounded-md max-w-xl mx-auto space-y-6"
-        >
-          {/* Image upload */}
-          <div className="flex items-center gap-6">
-            <div className="w-24 h-24 bg-white border rounded overflow-hidden flex items-center justify-center">
-              {form.image ? (
-                <img
-                  src={form.image}
-                  className="object-cover w-full h-full"
+          <form onSubmit={submitForm} className="space-y-6">
+            {/* Image upload */}
+            <div className="flex flex-col sm:flex-row items-center gap-6 p-4 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+              <div className="w-32 h-32 bg-white border-2 border-gray-200 rounded-lg overflow-hidden flex items-center justify-center shadow-inner">
+                {form.image ? (
+                  <img src={form.image} className="object-cover w-full h-full" alt="Preview" />
+                ) : (
+                  <div className="text-center">
+                    <span className="text-gray-400 text-xs">No Image</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-medium text-gray-700">Product Image</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 cursor-pointer"
+                  onChange={(e) => handleImage(e.target.files[0])}
                 />
-              ) : (
-                <span className="text-gray-400">No Image</span>
-              )}
+              </div>
             </div>
 
-            <input
-              type="file"
-              accept="image/*"
-              className="border p-1 rounded cursor-pointer"
-              onChange={(e) => handleImage(e.target.files[0])}
-            />
-          </div>
+            {/* Inputs */}
+            <div className="grid grid-cols-1 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
+                <input
+                  type="text"
+                  placeholder="Enter product name"
+                  required
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-200 focus:border-purple-400 outline-none transition-all"
+                />
+              </div>
 
-          {/* Inputs */}
-          <input
-            type="text"
-            placeholder="Name"
-            required
-            value={form.name}
-            onChange={(e) =>
-              setForm({ ...form, name: e.target.value })
-            }
-            className="w-full p-2 border rounded"
-          />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Electronics, Clothing"
+                  required
+                  value={form.category}
+                  onChange={(e) => setForm({ ...form, category: e.target.value })}
+                  className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-200 focus:border-purple-400 outline-none transition-all"
+                />
+              </div>
 
-          <input
-            type="text"
-            placeholder="Category"
-            required
-            value={form.category}
-            onChange={(e) =>
-              setForm({ ...form, category: e.target.value })
-            }
-            className="w-full p-2 border rounded"
-          />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Price ($)</label>
+                <input
+                  type="text"
+                  placeholder="0.00"
+                  required
+                  value={form.price}
+                  onChange={(e) => setForm({ ...form, price: e.target.value })}
+                  className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-200 focus:border-purple-400 outline-none transition-all"
+                />
+              </div>
+            </div>
 
-          <input
-            type="text"
-            placeholder="Price"
-            required
-            value={form.price}
-            onChange={(e) =>
-              setForm({ ...form, price: e.target.value })
-            }
-            className="w-full p-2 border rounded"
-          />
+            {/* Buttons */}
+            <div className="flex flex-wrap gap-3 justify-end pt-6 border-t">
+              <button
+                type="button"
+                onClick={cancelForm}
+                className="px-6 py-2 rounded-lg font-medium text-gray-600 hover:bg-gray-100 transition-colors"
+              >
+                Clear
+              </button>
 
-          {/* Buttons */}
-          <div className="flex gap-4 justify-center">
-            <button
-              type="button"
-              onClick={saveDraft}
-              className="bg-cyan-400 px-6 py-2 rounded font-semibold text-white hover:bg-cyan-500"
-            >
-              บันทึกร่าง
-            </button>
+              <button
+                type="button"
+                onClick={saveDraft}
+                className="bg-cyan-500 px-6 py-2 rounded-lg font-semibold text-white hover:bg-cyan-600 shadow-sm transition-all active:scale-95"
+              >
+                Save Draft
+              </button>
 
-            <button
-              type="submit"
-              className="bg-green-500 px-6 py-2 rounded font-semibold text-white hover:bg-green-600"
-            >
-              บันทึก
-            </button>
-
-            <button
-              type="button"
-              onClick={cancelForm}
-              className="bg-red-500 px-6 py-2 rounded font-semibold text-white hover:bg-red-600"
-            >
-              ยกเลิก
-            </button>
-          </div>
-        </form>
+              <button
+                type="submit"
+                className="bg-purple-600 px-8 py-2 rounded-lg font-semibold text-white hover:bg-purple-700 shadow-md transition-all active:scale-95"
+              >
+                Confirm Save
+              </button>
+            </div>
+          </form>
+        </section>
       </main>
     </div>
   );
