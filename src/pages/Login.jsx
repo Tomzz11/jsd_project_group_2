@@ -12,32 +12,44 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Link, useLocation, useNavigate } from "react-router-dom"
-import { loginMock } from "@/lib/auth"
+// import { loginMock } from "@/lib/auth"
+import axios from "axios";
 
 const Login = () => {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
+  const [token, setToken] = useState("");
 
   const navigate = useNavigate()
   const location = useLocation()
   const from = location.state?.from?.pathname || "/UserDashboard"
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    setError("")
-
-    try {
-      loginMock({ email, password })
-
-      // ✅ เช็คทันทีว่า token ถูก set ไหม
-      console.log("token:", localStorage.getItem("maipaws_token"))
-
-      navigate(from, { replace: true })
-    } catch (err) {
-      setError(err?.message || "Login failed")
+ const handleSubmit = async (e) => {
+  e.preventDefault()
+  setError("")
+  
+  try {
+    const response = await axios.post('http://localhost:5000/api/auth/login', {
+      email,
+      password
+    });
+    
+    if (response.status === 200) {
+      const newToken = response.data.data.token; // ✅ เก็บไว้ในตัวแปร
+      
+      setToken(newToken); // อัปเดต state
+      localStorage.setItem("maipaws_token", newToken); // ✅ ใช้ค่าจากตัวแปร
+      
+      console.log("Token saved:", newToken);
+      
+      navigate(from, { replace: true });
     }
+  } catch (error) {
+    console.error("Fetch error:", error);
+    setError("เข้าสู่ระบบไม่สำเร็จ");
   }
+}
 
   return (
     <div
