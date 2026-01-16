@@ -10,8 +10,8 @@ import {
 import Autoplay from "embla-carousel-autoplay";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { products } from "@/components/mockdata/products";
 import { productAPI } from '../services/api';
+import { Progress } from "@/components/ui/progress"
 
 
 
@@ -19,24 +19,44 @@ const App = () => {
   
     const [featured, setFeatured] = useState([]);
   const [loading, setLoading] = useState(true);
+    const [progress, setProgress] = useState(13)
 
-  useEffect(() => {
-    const fetchFeatured = async () => {
-      try {
-        const res = await productAPI.getFeatured();
-        setFeatured(Array.isArray(res?.data?.data) ? res.data.data : []);
-      } catch (e) {
-        console.error(e);
-        setFeatured([]);
-      } finally {
+
+  
+useEffect(() => {
+  let timer1;
+  let timer2;
+
+  const fetchFeatured = async () => {
+    try {
+      const res = await productAPI.getFeatured();
+      setFeatured(Array.isArray(res?.data?.data) ? res.data.data : []);
+      
+      // progress step
+      timer1 = setTimeout(() => setProgress(66), 500);
+      timer2 = setTimeout(() => {
+        setProgress(100);
         setLoading(false);
-      }
-    };
+      }, );
 
-    fetchFeatured();
-  }, []);
+    } catch (e) {
+      console.error(e);
+      setFeatured([]);
+      setLoading(false);
+    }
+  };
 
-  if (loading) return <div className="p-6">Loading...</div>;
+  fetchFeatured();
+
+  return () => {
+    clearTimeout(timer1);
+    clearTimeout(timer2);
+  };
+}, []);
+
+  if (loading) return <div className=" absolute inset-0 z-0 h-screen flex justify-center items-center bg-[url('/catcat.jpg')] bg-center  ">
+    <Progress value={progress} className="w-[60%]  " />
+  </div>
   return (
     <>
       <main>
@@ -47,6 +67,7 @@ const App = () => {
             autoPlay
             loop
             muted
+            preload="auto"
             playsInline
           />
 
@@ -154,7 +175,7 @@ const App = () => {
 
         <section
           id="listitem"
-          className="bg-yellow-700 "
+          className="bg-[linear-gradient(to_right_top,#e9dbbf,#e4d3b3,#d2c1a2,#dfceae,#eddcba,#eddcbb,#ecddbd,#ecddbe,#ded0b5,#d0c3ab,#fceacb,#e9dcc6)]"
          
         >
           <div className="  text-center"  ><h1 className="pt-5 text-3xl font-bold"> Suggestion Product</h1></div>
@@ -167,12 +188,12 @@ const App = () => {
                   stopOnInteraction: true
                 })
               ]}
-              className="w-full max-w-3xl mx-auto"
+              className="w-full max-w-4xl mx-auto"
             >
               <CarouselContent className="-ml-3">
                 {featured.map((product) => (
                   <CarouselItem key={product.id} className="basis-1/3 pl-3">
-                    <Card className="min-h-[480px] overflow-hidden rounded-3xl shadow-md">
+                    <Card className="min-h-[480px]  overflow-hidden rounded-3xl shadow-md">
                       {/* Image area */}
                       <div className="min-h-[200px] bg-muted">
                         <img

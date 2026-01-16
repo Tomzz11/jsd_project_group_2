@@ -12,7 +12,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Link, useLocation, useNavigate } from "react-router-dom"
-import { loginMock } from "@/lib/auth"
+// import { loginMock } from "@/lib/auth"
 import axios from "axios";
 
 const Login = () => {
