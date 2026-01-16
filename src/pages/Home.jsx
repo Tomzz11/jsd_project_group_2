@@ -8,12 +8,35 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { products } from "@/components/mockdata/products";
+import { productAPI } from '../services/api';
 
 
 
 const App = () => {
+  
+    const [featured, setFeatured] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchFeatured = async () => {
+      try {
+        const res = await productAPI.getFeatured();
+        setFeatured(Array.isArray(res?.data?.data) ? res.data.data : []);
+      } catch (e) {
+        console.error(e);
+        setFeatured([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFeatured();
+  }, []);
+
+  if (loading) return <div className="p-6">Loading...</div>;
   return (
     <>
       <main>
@@ -131,15 +154,23 @@ const App = () => {
 
         <section
           id="listitem"
+          className="bg-yellow-700 "
          
         >
-          <div  className=" relative flex justify-center py-10 bg-slate-50">
+          <div className="  text-center"  ><h1 className="pt-5 text-3xl font-bold"> Suggestion Product</h1></div>
+          <div  className=" relative flex justify-center py-10 ">
             <Carousel
-              opts={{ align: "start" }}
+              opts={{ align: "start", loop: true }}
+              plugins={[
+                Autoplay({
+                  delay: 2000,
+                  stopOnInteraction: true
+                })
+              ]}
               className="w-full max-w-3xl mx-auto"
             >
               <CarouselContent className="-ml-3">
-                {products.map((product) => (
+                {featured.map((product) => (
                   <CarouselItem key={product.id} className="basis-1/3 pl-3">
                     <Card className="min-h-[480px] overflow-hidden rounded-3xl shadow-md">
                       {/* Image area */}

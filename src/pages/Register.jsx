@@ -21,6 +21,8 @@ import { Link, useNavigate } from "react-router-dom"
 
 import { registerMock, loginMock } from "@/lib/auth"
 
+import axios from "axios";
+
 const Register = () => {
   const navigate = useNavigate()
 
@@ -52,7 +54,7 @@ const Register = () => {
     setForm((prev) => ({ ...prev, [key]: e.target.value }))
   }
 
-  const handleSubmit = (e) => {
+  const  handleSubmit = async (e) => {
     e.preventDefault()
     setError("")
 
@@ -65,27 +67,48 @@ const Register = () => {
 
     try {
       // 1) register (เพิ่ม user ลง localStorage)
-      registerMock({
+      // registerMock({
+      //   email: form.email,
+      //   password: form.password,
+      //   // เผื่ออยากเก็บ profile เพิ่ม (ถ้า auth.js รองรับ)
+      //   profile: {
+      //     displayName: `${form.firstName} ${form.lastName}`,
+      //     firstName: form.firstName,
+      //     lastName: form.lastName,
+      //     phone: form.phone,
+      //     birthday: `${form.dobYear}-${form.dobMonth}-${form.dobDay}`,
+      //   },
+      // })
+      
+
+      const userData = {
+        name: form.firstName,
+        lastName: form.lastName,
         email: form.email,
         password: form.password,
-        // เผื่ออยากเก็บ profile เพิ่ม (ถ้า auth.js รองรับ)
-        profile: {
-          displayName: `${form.firstName} ${form.lastName}`,
-          firstName: form.firstName,
-          lastName: form.lastName,
-          phone: form.phone,
-          birthday: `${form.dobYear}-${form.dobMonth}-${form.dobDay}`,
-        },
-      })
+        phone: form.phone,
+        birtday: `${form.dobYear}-${form.dobMonth}-${form.dobDay}`,
+        avatarUrl: "/avatars/default-user.png",
+      }
+
+      const response = await axios.post('http://localhost:5000/api/auth/register', userData);
+      if (response.status === 200) {
+        console.log(response) ;
+      }
+    } catch (error) {
+      console.error("Fetch error:", error);
+    } finally {
+      navigate("/Login", { replace: true })
+    }
 
       // 2) login อัตโนมัติ
-      loginMock({ email: form.email, password: form.password })
+  
 
       // 3) ไป dashboard
-      navigate("/UserDashboard", { replace: true })
-    } catch (err) {
-      setError(err?.message || "Register failed")
-    }
+
+    // } catch (err) {
+    //   setError(err?.message || "Register failed")
+    // }
   }
 
   return (

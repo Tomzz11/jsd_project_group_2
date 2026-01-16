@@ -38,7 +38,9 @@ const Products = () => {
 
       const response = await productAPI.getAll(params);
       setProducts(response.data.data);
+       console.log(response);
       setPagination(response.data.pagination);
+     
     } catch (error) {
       console.error('Error fetching products:', error);
     } finally {
@@ -195,10 +197,23 @@ const Products = () => {
         ) : products.length > 0 ? (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {/* {products.map((product) => (
+  {products.map((p) => (
+    <div key={p._id ?? p.id} className="bg-white rounded-xl shadow p-4">
+      <div className="aspect-square bg-gray-100 rounded-lg mb-3" />
+      <h3 className="font-semibold text-gray-800 line-clamp-1">{p.name ?? "No name"}</h3>
+      <p className="text-sm text-gray-500 line-clamp-2">{p.description ?? ""}</p>
+      <p className="mt-2 font-bold text-primary-600">
+        ฿{Number(p.price ?? 0).toLocaleString()}
+      </p>
+    </div>
+  ))}
+</div>
+            {/* <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {products.map((product) => (
                 <ProductCard key={product._id} product={product} />
-              ))} */}
-            </div>
+              ))}
+              
+            </div> */}
 
             {/* Pagination */}
             {pagination.totalPages > 1 && (
@@ -261,76 +276,76 @@ export default Products;
 
 
 
-  // const products = [
-  //     {
-  //         id: 1,
-  //         category: 'Dog',
-  //         name: 'Premium Dog Food – Chicken & Rice',
-  //         description: 'อาหารเม็ดสูตรสมดุล สำหรับสุนัขอายุตั้งแต่ 1 ปีขึ้นไป',
-  //         price: 890,
-  //         emoji: '🐶'
-  //     },
-  //     {
-  //         id: 2,
-  //         category: 'Cat',
-  //         name: 'Grain-Free Cat Food – Salmon',
-  //         description: 'สูตรเกรนฟรีสำหรับแมวที่แพ้ง่าย ช่วยให้ขนเงางาม',
-  //         price: 720,
-  //         emoji: '🐱'
-  //     },
-  //     {
-  //         id: 3,
-  //         category: 'Dog / Cat',
-  //         name: 'Interactive Toy Set',
-  //         description: 'ของเล่นเพิ่มกิจกรรมและลดความเครียดสำหรับสัตว์เลี้ยง',
-  //         price: 450,
-  //         emoji: '🎾'
-  //     },
-  //       {
-  //         id: 3,
-  //         category: 'Dog / Cat',
-  //         name: 'Interactive Toy Set',
-  //         description: 'ของเล่นเพิ่มกิจกรรมและลดความเครียดสำหรับสัตว์เลี้ยง',
-  //         price: 450,
-  //         emoji: '🎾'
-  //     },
-  //       {
-  //         id: 3,
-  //         category: 'Dog / Cat',
-  //         name: 'Interactive Toy Set',
-  //         description: 'ของเล่นเพิ่มกิจกรรมและลดความเครียดสำหรับสัตว์เลี้ยง',
-  //         price: 450,
-  //         emoji: '🎾'
-  //     },
-  //       {
-  //         id: 3,
-  //         category: 'Dog / Cat',
-  //         name: 'Interactive Toy Set',
-  //         description: 'ของเล่นเพิ่มกิจกรรมและลดความเครียดสำหรับสัตว์เลี้ยง',
-  //         price: 450,
-  //         emoji: '🎾'
-  //     },
-  // ];
+//   const products = [
+//       {
+//           id: 1,
+//           category: 'Dog',
+//           name: 'Premium Dog Food – Chicken & Rice',
+//           description: 'อาหารเม็ดสูตรสมดุล สำหรับสุนัขอายุตั้งแต่ 1 ปีขึ้นไป',
+//           price: 890,
+//           emoji: '🐶'
+//       },
+//       {
+//           id: 2,
+//           category: 'Cat',
+//           name: 'Grain-Free Cat Food – Salmon',
+//           description: 'สูตรเกรนฟรีสำหรับแมวที่แพ้ง่าย ช่วยให้ขนเงางาม',
+//           price: 720,
+//           emoji: '🐱'
+//       },
+//       {
+//           id: 3,
+//           category: 'Dog / Cat',
+//           name: 'Interactive Toy Set',
+//           description: 'ของเล่นเพิ่มกิจกรรมและลดความเครียดสำหรับสัตว์เลี้ยง',
+//           price: 450,
+//           emoji: '🎾'
+//       },
+//         {
+//           id: 3,
+//           category: 'Dog / Cat',
+//           name: 'Interactive Toy Set',
+//           description: 'ของเล่นเพิ่มกิจกรรมและลดความเครียดสำหรับสัตว์เลี้ยง',
+//           price: 450,
+//           emoji: '🎾'
+//       },
+//         {
+//           id: 3,
+//           category: 'Dog / Cat',
+//           name: 'Interactive Toy Set',
+//           description: 'ของเล่นเพิ่มกิจกรรมและลดความเครียดสำหรับสัตว์เลี้ยง',
+//           price: 450,
+//           emoji: '🎾'
+//       },
+//         {
+//           id: 3,
+//           category: 'Dog / Cat',
+//           name: 'Interactive Toy Set',
+//           description: 'ของเล่นเพิ่มกิจกรรมและลดความเครียดสำหรับสัตว์เลี้ยง',
+//           price: 450,
+//           emoji: '🎾'
+//       },
+//   ];
 
-  // const filteredProducts = productData.filter((product) => {
-  //   const matchesCategory =
-  //     selectedCategory === "All" || product.category.includes(selectedCategory);
-  //   const matchesSearch =
-  //     product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-  //     product.description.toLowerCase().includes(searchQuery.toLowerCase());
-  //   return matchesCategory && matchesSearch;
-  // });
+//   const filteredProducts = productData.filter((product) => {
+//     const matchesCategory =
+//       selectedCategory === "All" || product.category.includes(selectedCategory);
+//     const matchesSearch =
+//       product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+//       product.description.toLowerCase().includes(searchQuery.toLowerCase());
+//     return matchesCategory && matchesSearch;
+//   });
 
-  // const handleAddToCart = (product) => {
-  //   alert(`Added "${product}" to cart!`);
-  //   const list = JSON.parse(localStorage.getItem('productSelectedList')) || [];
-  //   const iq = {id: product.id, quantity: product.quantity}
-  //   // if (iq.id===list.id)
-  //   // {iq.quantity +=1}
-  //   list.push(iq);
-  //   localStorage.setItem('productSelectedList', JSON.stringify(list));
+//   const handleAddToCart = (product) => {
+//     alert(`Added "${product}" to cart!`);
+//     const list = JSON.parse(localStorage.getItem('productSelectedList')) || [];
+//     const iq = {id: product.id, quantity: product.quantity}
+//     // if (iq.id===list.id)
+//     // {iq.quantity +=1}
+//     list.push(iq);
+//     localStorage.setItem('productSelectedList', JSON.stringify(list));
   
-  // };
+//   };
 
 //   const handleAddToCart = (product) => {
 //   const list =
