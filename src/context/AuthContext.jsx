@@ -3,6 +3,7 @@ import { authAPI } from '../services/api';
 
 const AuthContext = createContext();
 
+
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -15,7 +16,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-
+  // ฟังก์ชันดึงข้อมูล user แบบเต็ม
   const fetchFullUserData = async (token) => {
     try {
       const meResponse = await authAPI.getMe();
@@ -26,6 +27,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // ตรวจสอบ token เมื่อโหลดแอป
   useEffect(() => {
     const initAuth = async () => {
       const token = localStorage.getItem('token');
@@ -33,11 +35,13 @@ export const AuthProvider = ({ children }) => {
       
       if (token && savedUser) {
         try {
+          // Verify token กับ server และดึงข้อมูลเต็ม
           const response = await authAPI.getMe();
           const fullUserData = { ...response.data.data, token };
           setUser(fullUserData);
           localStorage.setItem('user', JSON.stringify(fullUserData));
         } catch (error) {
+          // Token ไม่ valid
           console.error('Auth init error:', error);
           localStorage.removeItem('token');
           localStorage.removeItem('user');
@@ -49,16 +53,16 @@ export const AuthProvider = ({ children }) => {
     initAuth();
   }, []);
 
-
+  // Register
   const register = async (name, email, password) => {
     try {
       const response = await authAPI.register({ name, email, password });
       const { data } = response.data;
       
-      
+      // บันทึก token ก่อน
       localStorage.setItem('token', data.token);
       
-      
+      // ลองดึงข้อมูล user แบบเต็ม
       const fullUserData = await fetchFullUserData(data.token);
       
       if (fullUserData) {
@@ -66,6 +70,7 @@ export const AuthProvider = ({ children }) => {
         setUser(fullUserData);
         return { success: true, data: fullUserData };
       } else {
+        // ถ้าดึงไม่ได้ ใช้ข้อมูลจาก register response แทน
         const basicUserData = { ...data, createdAt: new Date().toISOString() };
         localStorage.setItem('user', JSON.stringify(basicUserData));
         setUser(basicUserData);
@@ -80,16 +85,16 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-
+  // Login
   const login = async (email, password) => {
     try {
       const response = await authAPI.login({ email, password });
       const { data } = response.data;
       
-
+      // บันทึก token ก่อน
       localStorage.setItem('token', data.token);
       
-
+      // ลองดึงข้อมูล user แบบเต็ม
       const fullUserData = await fetchFullUserData(data.token);
       
       if (fullUserData) {
@@ -97,6 +102,7 @@ export const AuthProvider = ({ children }) => {
         setUser(fullUserData);
         return { success: true, data: fullUserData };
       } else {
+        // ถ้าดึงไม่ได้ ใช้ข้อมูลจาก login response แทน
         localStorage.setItem('user', JSON.stringify(data));
         setUser(data);
         return { success: true, data };
@@ -110,6 +116,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Logout
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
@@ -135,7 +142,10 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
+
 export default AuthContext;
+
+
 
 
 
