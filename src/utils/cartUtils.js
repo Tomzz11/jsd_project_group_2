@@ -1,28 +1,20 @@
 // utils/cartUtils.js
-import axios from 'axios';
+import { cartAPI } from "../services/api"; // ปรับ path ให้ตรงโปรเจกต์อัส
 
-const API_URL = 'http://localhost:5000/api';
+const LOCAL_KEY = "maipaws_cart";
 
-// ==========================================
-// Helper Functions
-// ==========================================
+const getToken = () => localStorage.getItem("token");
+const isAuthenticated = () => !!getToken();
 
-const getToken = () => {
-  // ✅ ใช้ชื่อเดียวกับ AuthContext
-  return localStorage.getItem('token');
-};
+// รองรับ product เป็น object/string และ item เป็นหลายรูปแบบ
+const getProductId = (x) => x?.product?._id || x?.productId || x?.product || x?._id;
 
-const isAuthenticated = () => {
-  return !!getToken();
-};
-
-// ==========================================
-// LocalStorage Functions (สำหรับคนไม่ login)
-// ==========================================
-
+// ----------------------
+// LocalStorage
+// ----------------------
 export const getLocalCart = () => {
   try {
-    const items = localStorage.getItem("maipaws_cart");
+    const items = localStorage.getItem(LOCAL_KEY);
     return items ? JSON.parse(items) : [];
   } catch (error) {
     console.error("Error reading cart:", error);
@@ -32,7 +24,7 @@ export const getLocalCart = () => {
 
 const saveLocalCart = (items) => {
   try {
-    localStorage.setItem("maipaws_cart", JSON.stringify(items));
+    localStorage.setItem(LOCAL_KEY, JSON.stringify(items));
     return true;
   } catch (error) {
     console.error("Error saving cart:", error);
@@ -40,241 +32,152 @@ const saveLocalCart = (items) => {
   }
 };
 
-// ==========================================
-// Database Functions (สำหรับคน login)
-// ==========================================
-
+// ----------------------
+// DB
+// ----------------------
 const getDbCart = async () => {
   try {
-    const token = getToken();
-    const response = await axios.get(`${API_URL}/cart`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    
-    if (response.data.success) {
-      // ✅ แปลงข้อมูลจาก DB ให้เป็นรูปแบบเดียวกับ localStorage
-      const items = response.data.data.items.map(item => ({
-        _id: item.product._id,
-        product: item.product._id,
-        name: item.product.name,
-        price: item.product.price,
-        image: item.product.image,
-        quantity: item.quantity,
-        stock: item.product.stock
-      }));
-      return items;
-    }
-    return [];
+    const res = await cartAPI.get();
+
+    if (!res.data?.success) return [];
+
+    const items = res.data.data?.items || [];
+    // normalize ให้เป็น format เดียวกัน: productId เป็นตัวเดียว
+    return items.map((item) => ({
+      productId: item.product?._id,
+      name: item.product?.name,
+      price: item.product?.price,
+      image: item.product?.image,
+      quantity: item.quantity,
+      stock: item.product?.stock,
+    }));
   } catch (error) {
-    if (error.response?.status === 404) {
-      // ถ้ายังไม่มี cart ใน DB ให้ return array เปล่า
-      return [];
-    }
+    if (error.response?.status === 404) return [];
     console.error("Error fetching cart from DB:", error);
     return [];
   }
 };
 
-const saveDbCart = async (items) => {
+const upsertDbCart = async (items) => {
   try {
-    const token = getToken();
-    const formattedItems = items.map(item => ({
-      product: item._id || item.product,
-      quantity: item.quantity
+    const formattedItems = items.map((item) => ({
+      product: item.productId || getProductId(item),
+      quantity: item.quantity,
     }));
 
-    const response = await axios.post(
-      `${API_URL}/cart`,
-      { items: formattedItems },
-      { headers: { Authorization: `Bearer ${token}` }}
-    );
-
-    return response.data.success;
+    // ใช้ PUT เป็นหลัก (upsert)
+    const res = await cartAPI.upsert(formattedItems);
+    return !!res.data?.success;
   } catch (error) {
-    // ถ้า cart มีอยู่แล้ว ให้ใช้ PUT แทน
+    // ถ้า backend ของอัสบังคับให้ POST ตอนยังไม่มี cart
+    // ค่อย fallback ไป create ได้
     if (error.response?.status === 400) {
-      return await updateDbCart(items);
+      try {
+        const formattedItems = items.map((item) => ({
+          product: item.productId || getProductId(item),
+          quantity: item.quantity,
+        }));
+        const res2 = await cartAPI.create(formattedItems);
+        return !!res2.data?.success;
+      } catch (e2) {
+        console.error("Error creating cart in DB:", e2);
+        return false;
+      }
     }
-    console.error("Error saving cart to DB:", error);
+
+    console.error("Error upserting cart in DB:", error);
     return false;
   }
 };
 
-const updateDbCart = async (items) => {
-  try {
-    const token = getToken();
-    const formattedItems = items.map(item => ({
-      product: item._id || item.product,
-      quantity: item.quantity
-    }));
-
-    const response = await axios.put(
-      `${API_URL}/cart`,
-      { items: formattedItems },
-      { headers: { Authorization: `Bearer ${token}` }}
-    );
-
-    return response.data.success;
-  } catch (error) {
-    console.error("Error updating cart in DB:", error);
-    return false;
-  }
-};
-
-// ==========================================
-// Public API (ใช้ DB ถ้า login, ไม่งั้นใช้ localStorage)
-// ==========================================
-
+// ----------------------
+// Public API
+// ----------------------
 export const getCartItems = async () => {
-  if (isAuthenticated()) {
-    return await getDbCart();
-  }
-  return getLocalCart();
+  return isAuthenticated() ? await getDbCart() : getLocalCart();
 };
 
 export const saveCartItems = async (items) => {
-  if (isAuthenticated()) {
-    return await updateDbCart(items);
-  }
-  return saveLocalCart(items);
+  return isAuthenticated() ? await upsertDbCart(items) : saveLocalCart(items);
 };
 
 export const addToCart = async (product, quantity = 1) => {
-  const cartItems = isAuthenticated() 
-    ? await getDbCart() 
-    : getLocalCart();
-  
-  // เช็คว่ามีสินค้านี้ในตะกร้าแล้วหรือยัง
-  const existingItemIndex = cartItems.findIndex(
-    (item) => (item._id === product._id || item.product === product._id)
-  );
+  const cartItems = isAuthenticated() ? await getDbCart() : getLocalCart();
+  const productId = getProductId(product);
 
-  if (existingItemIndex !== -1) {
-    // ถ้ามีแล้ว เพิ่มจำนวน
-    cartItems[existingItemIndex].quantity += quantity;
+  const existingIndex = cartItems.findIndex((i) => (i.productId || getProductId(i)) === productId);
+
+  if (existingIndex !== -1) {
+    cartItems[existingIndex].quantity += quantity;
   } else {
-    // ถ้ายังไม่มี เพิ่มสินค้าใหม่
     cartItems.push({
-      _id: product._id,
-      product: product._id,
+      productId,
       name: product.name,
       price: product.price,
       image: product.image,
-      quantity: quantity,
-      stock: product.stock
+      quantity,
+      stock: product.stock,
     });
   }
 
-  if (isAuthenticated()) {
-    await updateDbCart(cartItems);
-  } else {
-    saveLocalCart(cartItems);
-  }
-  
+  await saveCartItems(cartItems);
   return cartItems;
 };
 
 export const removeFromCart = async (productId) => {
-  const cartItems = isAuthenticated() 
-    ? await getDbCart() 
-    : getLocalCart();
-    
-  const updatedItems = cartItems.filter(
-    (item) => item._id !== productId && item.product !== productId
-  );
+  const cartItems = isAuthenticated() ? await getDbCart() : getLocalCart();
+  const updatedItems = cartItems.filter((i) => (i.productId || getProductId(i)) !== productId);
 
-  if (isAuthenticated()) {
-    await updateDbCart(updatedItems);
-  } else {
-    saveLocalCart(updatedItems);
-  }
-  
+  await saveCartItems(updatedItems);
   return updatedItems;
 };
 
 export const updateCartItemQuantity = async (productId, quantity) => {
-  const cartItems = isAuthenticated() 
-    ? await getDbCart() 
-    : getLocalCart();
-    
-  const updatedItems = cartItems.map((item) =>
-    (item._id === productId || item.product === productId)
-      ? { ...item, quantity }
-      : item
+  const cartItems = isAuthenticated() ? await getDbCart() : getLocalCart();
+  const updatedItems = cartItems.map((i) =>
+    (i.productId || getProductId(i)) === productId ? { ...i, quantity } : i
   );
 
-  if (isAuthenticated()) {
-    await updateDbCart(updatedItems);
-  } else {
-    saveLocalCart(updatedItems);
-  }
-  
+  await saveCartItems(updatedItems);
   return updatedItems;
 };
 
 export const clearCart = async () => {
   if (isAuthenticated()) {
     try {
-      const token = getToken();
-      await axios.delete(`${API_URL}/cart`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await cartAPI.clear();
     } catch (error) {
       console.error("Error clearing cart in DB:", error);
     }
   }
-  localStorage.removeItem("maipaws_cart");
+  localStorage.removeItem(LOCAL_KEY);
 };
 
-export const getCartTotal = async () => {
-  const cartItems = await getCartItems();
-  return cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
-};
-
-export const getCartItemCount = async () => {
-  const cartItems = await getCartItems();
-  return cartItems.reduce((count, item) => count + item.quantity, 0);
-};
-
-// ==========================================
-// Sync Cart (เมื่อ login/logout)
-// ==========================================
-
+// ----------------------
+// Sync
+// ----------------------
 export const syncCartOnLogin = async () => {
-  // เอา cart จาก localStorage ไปรวมกับ DB
   const localCart = getLocalCart();
-  
-  if (localCart.length > 0) {
-    const dbCart = await getDbCart();
-    
-    // Merge carts
-    const mergedCart = [...dbCart];
-    
-    localCart.forEach(localItem => {
-      const existingIndex = mergedCart.findIndex(
-        item => (item._id === localItem._id || item.product === localItem._id)
-      );
-      
-      if (existingIndex !== -1) {
-        mergedCart[existingIndex].quantity += localItem.quantity;
-      } else {
-        mergedCart.push(localItem);
-      }
-    });
-    
-    await updateDbCart(mergedCart);
-    localStorage.removeItem("maipaws_cart"); // ลบ local cart
-    
-    return mergedCart;
+
+  const dbCart = await getDbCart();
+  if (localCart.length === 0) return dbCart;
+
+  const merged = [...dbCart];
+
+  for (const localItem of localCart) {
+    const pid = localItem.productId || getProductId(localItem);
+    const idx = merged.findIndex((d) => (d.productId || getProductId(d)) === pid);
+
+    if (idx !== -1) merged[idx].quantity += localItem.quantity;
+    else merged.push({ ...localItem, productId: pid });
   }
-  
-  return await getDbCart();
+
+  await upsertDbCart(merged);
+  localStorage.removeItem(LOCAL_KEY);
+  return merged;
 };
 
 export const syncCartOnLogout = async () => {
-  // เอา cart จาก DB มาใส่ localStorage
   const dbCart = await getDbCart();
-  if (dbCart.length > 0) {
-    saveLocalCart(dbCart);
-  }
+  if (dbCart.length > 0) saveLocalCart(dbCart);
 };
