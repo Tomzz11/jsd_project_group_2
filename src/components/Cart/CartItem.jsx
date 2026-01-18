@@ -1,53 +1,94 @@
-export default function CartItem({ item, onIncrease, onDecrease, onRemove}) {
-    return (
-    <div className="flex items-center gap-6 rounded-lg border p-4 bg-white">
+// components/Cart/CartItem.jsx
+import { Minus, Plus, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
-      {/* IMAGE (ซ้ายสุด) */}
-      <div className="w-20 h-20 shrink-0 overflow-hidden rounded-md bg-gray-100">
+const CartItem = ({ item, onIncrease, onDecrease, onRemove }) => {
+  // ✅ ป้องกัน undefined
+  const price = Number(item?.price) || 0;
+  const quantity = Number(item?.quantity) || 1;
+  const subtotal = price * quantity;
+
+  return (
+    <div className="flex gap-4 rounded-lg border bg-white p-4">
+      {/* Product Image */}
+      <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100">
         <img
-          src={item.image}
-          alt={item.name}
-          className="w-full h-full object-cover"
+          src={item?.image || '/placeholder.png'}
+          alt={item?.name || 'Product'}
+          className="h-full w-full object-cover"
         />
       </div>
 
-      {/* PRODUCT INFO */}
-      <div className="flex-1">
-        <p className="font-medium text-gray-800">{item.name}</p>
-        <p className="text-sm text-gray-500">฿{item.price.toFixed(2)} / item</p>
-      </div>
+      {/* Product Details */}
+      <div className="flex flex-1 flex-col">
+        <div className="flex justify-between">
+          <div>
+            <h3 className="font-semibold text-gray-900">
+              {item?.name || 'Unknown Product'}
+            </h3>
+            <p className="mt-1 text-sm text-gray-500">
+              ฿{price.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </p>
+          </div>
 
-      {/* QUANTITY */}
-      <div className="flex items-center gap-2">
-        <button
-          className="h-8 w-8 rounded border hover:bg-gray-100"
-          onClick={() => onDecrease(item.id)}
-        >
-          −
-        </button>
-        <span>{item.quantity}</span>
-        <button
-          className="h-8 w-8 rounded border hover:bg-gray-100"
-          onClick={() => onIncrease(item.id)}
-        >
-          +
-        </button>
-      </div>
+          {/* Remove Button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onRemove(item?._id || item?.product)}
+            className="text-red-500 hover:bg-red-50 hover:text-red-600"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
 
-      {/* TOTAL + REMOVE */}
-      <div className="text-right min-w-22.5">
-        <p className="font-semibold text-gray-800">
-          ฿{(item.price * item.quantity).toFixed(2)}
-        </p>
-        <button
-          className="text-red-500 text-sm hover:underline"
-          onClick={() => onRemove(item.id)}
-        >
-          Remove
-        </button>
-      </div>
+        {/* Quantity Controls and Subtotal */}
+        <div className="mt-auto flex items-center justify-between">
+          {/* Quantity Selector */}
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => onDecrease(item?._id || item?.product)}
+              disabled={quantity <= 1}
+              className="h-8 w-8"
+            >
+              <Minus className="h-3 w-3" />
+            </Button>
 
+            <span className="w-12 text-center font-medium">
+              {quantity}
+            </span>
+
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => onIncrease(item?._id || item?.product)}
+              disabled={quantity >= (item?.stock || 99)}
+              className="h-8 w-8"
+            >
+              <Plus className="h-3 w-3" />
+            </Button>
+          </div>
+
+          {/* Subtotal */}
+          <div className="text-right">
+            <p className="text-sm text-gray-500">Subtotal</p>
+            <p className="font-semibold text-gray-900">
+              ฿{subtotal.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </p>
+          </div>
+        </div>
+
+        {/* Stock Warning */}
+        {item?.stock && quantity >= item.stock && (
+          <p className="mt-2 text-xs text-orange-600">
+            สินค้าเหลือเพียง {item.stock} ชิ้น
+          </p>
+        )}
+      </div>
     </div>
   );
+};
 
-}
+export default CartItem;
