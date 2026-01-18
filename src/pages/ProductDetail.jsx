@@ -1,167 +1,360 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Heart,
+  ShoppingCart,
+  Minus,
+  Plus,
+  Star,
+  Truck,
+  Shield,
+  RotateCcw,
+  ChevronLeft,
+} from "lucide-react";
+import { productAPI } from "../services/api";
+import { useCart } from "../context/CartContext";
+import { toast } from "sonner";
 
+const ProductDetail = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [quantity, setQuantity] = useState(1);
+  const [selectedImage, setSelectedImage] = useState(0);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const { addToCart } = useCart();
 
-export default function ProductDetail() {
-    const [quantity, setQuantity] = useState(1);
-    const [selectedImage, setSelectedImage] = useState('front');
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const response = await productAPI.getById(id);
+        setProduct(response.data.data);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching product:", error);
+        setLoading(false);
+      }
+    };
 
-    return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
-      {/* Header & Navigation */}
-        <header className="bg-white shadow">
-        <nav className="bg-white shadow w-full">
-            <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-2">
+    fetchProduct();
+  }, [id]);
 
-                <span className="font-bold text-slate-800 text-sm">PetShop</span>
-            </div>
-
-            <ul className="hidden md:flex items-center gap-6 text-sm font-medium">
-                <Link to="/" className="hover:text-emerald-600">Home</Link>
-                <Link to="/products" className="hover:text-emerald-600">Products</Link>
-                <li><a href="#" className="hover:text-emerald-600">Contact</a></li>
-                <li><a href="#" className="hover:text-emerald-600">About</a></li>
-            </ul>
-
-            <div className="flex items-center gap-3">
-                <button className="px-4 py-2 border rounded-lg text-sm hover:bg-slate-100">
-                    Login
-                </button>
-                <button className="px-4 py-2 bg-emerald-600 text-white text-sm rounded-lg hover:bg-emerald-700">
-                    Register
-                </button>
-            </div>
-        </div>
-        </nav>
-    </header>
-
-      {/* Main Content */}
-    <main className="flex-1">
-        <section className="max-w-6xl mx-auto px-4 py-10">
-          {/* Breadcrumb */}
-        <nav className="text-[11px] text-slate-500 mb-4">
-            <a href="#" className="hover:text-emerald-600">Home</a>
-            <span className="mx-1">/</span>
-            <a href="#" className="hover:text-emerald-600">Products</a>
-            <span className="mx-1">/</span>
-            <span className="text-slate-400">Premium Dog Food – Chicken & Rice</span>
-        </nav>
-
-        <div className="grid gap-8 md:grid-cols-2 items-start">
-            {/* Product Images */}
-            <div>
-                <div className="rounded-3xl bg-white border shadow-sm p-4">
-                    <div className="rounded-2xl bg-slate-100 aspect-square flex items-center justify-center text-7xl">
-                            🐶
-                    </div>
-                </div>
-
-                <div className="mt-4 flex gap-2">
-                <button
-                    onClick={() => setSelectedImage('front')}
-                    className={`flex-1 rounded-xl ${
-                        selectedImage === 'front' ? 'border-2 border-emerald-500' : 'border'
-                    } bg-slate-100 aspect-video flex items-center justify-center text-xl`}
-                >
-                    Front
-                </button>
-                <button
-                    onClick={() => setSelectedImage('nutrition')}
-                    className={`flex-1 rounded-xl ${
-                        selectedImage === 'nutrition' ? 'border-2 border-emerald-500' : 'border'
-                    } bg-slate-100 aspect-video flex items-center justify-center text-xs text-slate-500`}
-                >
-                    Nutrition
-                </button>
-                <button
-                    onClick={() => setSelectedImage('size')}
-                    className={`flex-1 rounded-xl ${
-                        selectedImage === 'size' ? 'border-2 border-emerald-500' : 'border'
-                    } bg-slate-100 aspect-video flex items-center justify-center text-xs text-slate-500`}
-                >
-                    Size
-                </button>
-                </div>
-            </div>
-
-            {/* Product Details */}
-            <div className="space-y-4">
-                <div>
-                    <p className="text-[11px] uppercase tracking-wide text-emerald-600 font-semibold">
-                    Dog / Food
-                    </p>
-                    <h1 className="mt-1 text-2xl md:text-3xl font-bold text-slate-900">
-                        Premium Dog Food – Chicken & Rice
-                    </h1>
-                </div>
-
-            <div className="flex items-center gap-3">
-                <p className="text-2xl font-bold text-emerald-600">฿890</p>
-                <span className="text-[11px] text-slate-500">
-                    In stock • 3kg bag 
-                </span>
-            </div>
-
-            <p className="text-sm text-slate-600 leading-relaxed">
-                อาหารสุนัขคุณภาพสูง สูตรไก่และข้าว เหมาะสำหรับสุนัขอายุ 1 ปีขึ้นไป
-                โปรตีนย่อยง่าย ไขมันสมดุล เสริมโอเมก้า 3 และ 6 ช่วยให้ขนสวยสุขภาพดี
-                ไม่มีการเติมสี กลิ่น และสารกันเสียที่เป็นอันตราย 
-            </p>
-
-            <ul className="text-xs text-slate-600 space-y-1">
-                <li>• สูตรสมดุลสำหรับสุนัขทุกสายพันธุ์ </li>
-                <li>• เสริมวิตามินและแร่ธาตุที่จำเป็น </li>
-                <li>• เหมาะสำหรับสุนัขที่ออกกำลังกายปานกลาง </li>
-                <li>• ไม่มีส่วนผสมของข้าวสาลีและถั่วเหลือง </li>
-            </ul>
-
-            <div className="space-y-4">
-                <div className="flex items-center gap-4">
-                    <label className="text-xs font-medium text-slate-700">
-                    Quantity
-                    <input
-                        type="number"
-                        min="1"
-                        value={quantity}
-                        onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
-                        className="mt-1 w-20 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-400"
-                    />
-                    </label>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-3">
-                    <button
-                        type="button"
-                        onClick={() => alert(`Added ${quantity} item(s) to cart!`)}
-                        className="inline-flex items-center justify-center rounded-full bg-emerald-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700"
-                    >
-                        Add to Cart
-                    </button>
-                    </div>
-                </div>
-
-            <div className="mt-4 rounded-2xl bg-emerald-50 border border-emerald-100 p-3 text-[11px] text-emerald-900">
-                {/* Additional info can go here */}
-            </div>
-            </div>
-        </div>
-        </section>
-    </main>
-
-      {/* Footer */}
-    <footer className="bg-slate-900 text-slate-300 text-xs">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between gap-2">
-            <p>© 2025 PetShop. All rights reserved.</p>
-            <p className="text-[11px] text-slate-400">
-                {/* Product Detail page – Image / Price / Description / Add to Cart (UI only) */}
-            </p>
-        </div>
-    </footer>
-    </div>
+  const handleQuantityChange = (delta) => {
+    setQuantity((prev) =>
+      Math.max(1, Math.min(prev + delta, product?.stock || 99))
     );
-}
+  };
 
+  const handleAddToCart = () => {
+    if (!product) return;
 
+    const success = addToCart(product, quantity);
+    if (success) {
+      toast.success(`เพิ่ม ${product.name} (${quantity} ชิ้น) ลงตะกร้าแล้ว!`);
+    } else {
+      toast.error("ไม่สามารถเพิ่มสินค้าได้");
+    }
+  };
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="animate-pulse text-lg">Loading...</div>
+      </div>
+    );
+  }
 
+  if (!product) {
+    return (
+      <div className="flex h-screen flex-col items-center justify-center gap-4">
+        <p className="text-lg">Product not found</p>
+        <Button onClick={() => navigate("/products")}>Back to Products</Button>
+      </div>
+    );
+  }
 
+  // Mock images array (replace with product.images when available)
+  const images = product.images || [
+    product.image,
+    product.image,
+    product.image,
+  ];
+
+  return (
+    <div className="min-h-screen  from-orange-50 via-amber-50 to-yellow-50">
+      <div className="container mx-auto px-4 py-8">
+        {/* Back Button */}
+        <Button
+          variant="ghost"
+          onClick={() => navigate("/products")}
+          className="mb-6 gap-2"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          Back to Products
+        </Button>
+
+        <div className="grid gap-8 lg:grid-cols-2">
+          {/* Image Gallery */}
+          <div className="space-y-4">
+            <Card className="overflow-hidden">
+              <CardContent className="p-0">
+                <div className="relative aspect-square bg-white">
+                  <img
+                    src={images[selectedImage]}
+                    alt={product.name}
+                    className="h-full w-full object-contain p-8"
+                  />
+                  {product.discount && (
+                    <Badge className="absolute right-4 top-4 bg-red-500">
+                      -{product.discount}%
+                    </Badge>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Thumbnail Gallery */}
+            <div className="grid grid-cols-4 gap-2">
+              {images.map((img, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setSelectedImage(idx)}
+                  className={`aspect-square overflow-hidden rounded-lg border-2 transition-all ${
+                    selectedImage === idx
+                      ? "border-primary scale-105"
+                      : "border-gray-200 hover:border-gray-300"
+                  }`}
+                >
+                  <img
+                    src={img}
+                    alt={`${product.name} ${idx + 1}`}
+                    className="h-full w-full object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Product Info */}
+          <div className="space-y-6">
+            <div>
+              <div className="mb-2 flex items-center gap-2">
+                <Badge variant="outline">{product.category}</Badge>
+                {product.stock < 10 && product.stock > 0 && (
+                  <Badge variant="destructive">
+                    Only {product.stock} left!
+                  </Badge>
+                )}
+              </div>
+              <h1 className="text-3xl font-bold text-gray-900">
+                {product.name}
+              </h1>
+            </div>
+
+            {/* Rating */}
+            <div className="flex items-center gap-2">
+              <div className="flex">
+                {[...Array(5)].map((_, i) => (
+                  <Star
+                    key={i}
+                    className={`h-5 w-5 ${
+                      i < (product.rating || 4)
+                        ? "fill-yellow-400 text-yellow-400"
+                        : "fill-gray-200 text-gray-200"
+                    }`}
+                  />
+                ))}
+              </div>
+              <span className="text-sm text-gray-600">
+                ({product.reviews || 48} reviews)
+              </span>
+            </div>
+
+            {/* Price */}
+            <div className="space-y-1">
+              <div className="flex items-baseline gap-3">
+                <span className="text-4xl font-bold text-primary">
+                  ฿{Number(product.price).toLocaleString("th-TH")}
+                </span>
+                {product.originalPrice && (
+                  <span className="text-xl text-gray-400 line-through">
+                    ฿{Number(product.originalPrice).toLocaleString("th-TH")}
+                  </span>
+                )}
+              </div>
+              <p className="text-sm text-green-600">
+                Tax included. Shipping calculated at checkout.
+              </p>
+            </div>
+
+            {/* Quantity Selector */}
+            <div className="space-y-3">
+              <label className="text-sm font-medium">Quantity</label>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center rounded-lg border">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleQuantityChange(-1)}
+                    disabled={quantity <= 1}
+                  >
+                    <Minus className="h-4 w-4" />
+                  </Button>
+                  <span className="w-12 text-center font-semibold">
+                    {quantity}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleQuantityChange(1)}
+                    disabled={quantity >= (product.stock || 99)}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+                <span className="text-sm text-gray-600">
+                  {product.stock || 99} available
+                </span>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3">
+              <Button
+                size="lg"
+                className="flex-1 gap-2"
+                onClick={handleAddToCart}
+                disabled={!product.stock}
+              >
+                <ShoppingCart className="h-5 w-5" />
+                Add to Cart
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={() => setIsFavorite(!isFavorite)}
+              >
+                <Heart
+                  className={`h-5 w-5 ${
+                    isFavorite ? "fill-red-500 text-red-500" : ""
+                  }`}
+                />
+              </Button>
+            </div>
+
+            {/* Features */}
+            <div className="space-y-3 rounded-lg bg-white p-4">
+              <div className="flex items-center gap-3 text-sm">
+                <Truck className="h-5 w-5 text-primary" />
+                <span>Free shipping on orders over ฿1,000</span>
+              </div>
+              <div className="flex items-center gap-3 text-sm">
+                <Shield className="h-5 w-5 text-primary" />
+                <span>Authentic products guaranteed</span>
+              </div>
+              <div className="flex items-center gap-3 text-sm">
+                <RotateCcw className="h-5 w-5 text-primary" />
+                <span>30-day return policy</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Product Details Tabs */}
+        <div className="mt-12">
+          <Tabs defaultValue="description" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="description">Description</TabsTrigger>
+              <TabsTrigger value="specifications">Specifications</TabsTrigger>
+              <TabsTrigger value="reviews">Reviews</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="description" className="mt-6">
+              <Card>
+                <CardContent className="prose max-w-none p-6">
+                  <p className="text-gray-700 leading-relaxed">
+                    {product.description}
+                  </p>
+                  <div className="mt-4 space-y-2">
+                    <h3 className="font-semibold">Key Features:</h3>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li>High-quality materials safe for pets</li>
+                      <li>Durable and long-lasting</li>
+                      <li>Easy to clean and maintain</li>
+                      <li>Recommended by veterinarians</li>
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="specifications" className="mt-6">
+              <Card>
+                <CardContent className="p-6">
+                  <dl className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <dt className="font-semibold text-gray-600">Brand</dt>
+                      <dd className="mt-1">{product.brand || "MaiPaws"}</dd>
+                    </div>
+                    <div>
+                      <dt className="font-semibold text-gray-600">Category</dt>
+                      <dd className="mt-1">{product.category}</dd>
+                    </div>
+                    <div>
+                      <dt className="font-semibold text-gray-600">Weight</dt>
+                      <dd className="mt-1">{product.weight || "500g"}</dd>
+                    </div>
+                    <div>
+                      <dt className="font-semibold text-gray-600">SKU</dt>
+                      <dd className="mt-1">
+                        {product._id?.slice(-8).toUpperCase()}
+                      </dd>
+                    </div>
+                  </dl>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="reviews" className="mt-6">
+              <Card>
+                <CardContent className="p-6">
+                  <div className="mb-6 flex items-center gap-4">
+                    <div className="text-center">
+                      <div className="text-4xl font-bold">
+                        {product.rating || 4.5}
+                      </div>
+                      <div className="flex justify-center mt-1">
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`h-4 w-4 ${
+                              i < (product.rating || 4)
+                                ? "fill-yellow-400 text-yellow-400"
+                                : "fill-gray-200 text-gray-200"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      <div className="text-sm text-gray-600 mt-1">
+                        {product.reviews || 48} reviews
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-center text-gray-500">
+                    Reviews will be displayed here
+                  </p>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ProductDetail;

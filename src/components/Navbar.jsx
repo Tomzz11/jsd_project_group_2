@@ -11,7 +11,7 @@ import {
 
 import { isAuthed, getCurrentUser, logoutMock } from "@/lib/auth"
 
-const Navbar = () => {
+const Navbar = ({ fixed = false, transparent = false }) => {
   const navigate = useNavigate()
   const authed = isAuthed()
   const user = getCurrentUser()
@@ -21,10 +21,20 @@ const Navbar = () => {
     navigate("/login", { replace: true })
   }
 
+    const base = "z-50 h-20 flex items-center justify-between px-10 transition-all duration-300";
+
+  const position = fixed
+    ? "fixed top-0 left-0 right-0 "
+    : "relative"; // หรือ "sticky top-0" ถ้าอยากให้ติดบนตอน scroll
+
+  const skin = transparent
+    ? "bg-transparent text-white"
+    : "bg-white/70 backdrop-blur-md shadow-sm text-gray-900";
+
   return (
-    <nav className="relative z-20 h-20 flex items-center justify-between px-10  ">
+       <nav className={`${base} ${position} ${skin}`}>
       {/* Left */}
-      <div className="relative z-10 flex items-center gap-2 ">
+      <div className=" flex items-center gap-2 ">
         <Link to="/">
           <img className="h-20 w-20 pt-3.5" src="IMG_8372.png" alt="" />
         </Link>
@@ -42,7 +52,7 @@ const Navbar = () => {
 
           {/* user icon */}
           <li className="hover:text-blue-600 rounded-full ">
-            <Link to={authed ? "/UserDashboard" : "/login"}>
+            <Link to={authed ? "/dashboard" : "/login"}>
               <i className="bx bx-user"></i>
             </Link>
           </li>
@@ -80,11 +90,11 @@ const Navbar = () => {
 
                 <DropdownMenuSeparator />
 
-                <DropdownMenuItem onClick={() => navigate("/UserDashboard")}>
+                <DropdownMenuItem onClick={() => navigate("/dashboard")}>
                   Profile
                 </DropdownMenuItem>
 
-                <DropdownMenuItem onClick={() => navigate("/OrderHistory")}>
+                <DropdownMenuItem onClick={() => navigate("/orders")}>
                   Orders
                 </DropdownMenuItem>
 
