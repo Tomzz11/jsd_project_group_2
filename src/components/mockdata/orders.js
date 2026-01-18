@@ -4,7 +4,12 @@ export const orders = [
      time: "11.42",
      status: "Completed",
      paymentStatus: "Paid (Simulated)",
-     shippingAddress:"456 Sukumvit road Bangkok",
+     shippingAddress:{
+      address:" 456",
+      city: "Bangkok",
+      postalCode: "12010",
+      phone: "0812345678",
+     },
      items: [
         { name: "Sheba Pouch Tuna and Salmon", price: 23, quantity: 1 },
         { name: "Me O Creammy Treat Salmon Flavor 15g. pack 20", price: 225, quantity: 2},
@@ -19,7 +24,12 @@ export const orders = [
      time: "20.45",
      status: "Pending",
      paymentStatus: "Pending Payment",
-     shippingAddress: "99 Sathon Nuea Road Bangkok",
+     shippingAddress:{
+      address: "123",
+      city: "Bangkok",
+      postalCode: "10240",
+      phone: "0824567812"
+     },
      items: [
       { name: "LovliTails Natural & Mild Dog Shampoo 450ml.", price: 399, quantity: 1 },
     ],
@@ -32,7 +42,12 @@ export const orders = [
      time: "19.15", 
      status: "Shipped",
      paymentStatus: "Paid (Simulated)",
-     shippingAddress: "99 Lasalle Road Bangkok",
+     shippingAddress: {
+      address: "789",
+      city: "Bangkok",
+      postalCode: "10123",
+      phone: "0831478523"
+     },
      items: [
       { name: "Bejiary Dog Leash Size 120cm. and Harness Size 20mm.", price:215, quantity: 1 },
     ],
@@ -45,7 +60,12 @@ export const orders = [
      time: "11.42",
      status: "Completed",
      paymentStatus: "Paid (Simulated)",
-     shippingAddress:"456 Sukumvit road Bangkok",
+     shippingAddress:{
+      address: "852",
+      city: "Bangkok",
+      postalCode: "10112",
+      phone:"0857423698"
+     },
      items: [
         { name: "Sheba Pouch Tuna and Salmon", price: 23, quantity: 1 },
         { name: "Me O Creammy Treat Salmon Flavor 15g. pack 20", price: 225, quantity: 2},

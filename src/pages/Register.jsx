@@ -23,6 +23,7 @@ import { registerMock, loginMock } from "@/lib/auth"
 
 import axios from "axios";
 
+import { config } from "../config/config.js";
 const Register = () => {
   const navigate = useNavigate()
 
@@ -91,7 +92,7 @@ const Register = () => {
         avatarUrl: "/avatars/default-user.png",
       }
 
-      const response = await axios.post('http://localhost:5000/api/auth/register', userData);
+      const response = await axios.post(`${config.apiUrl}/api/auth/register`, userData);
       if (response.status === 200) {
         console.log(response) ;
       }
