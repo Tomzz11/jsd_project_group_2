@@ -1,17 +1,25 @@
-import Navbar from '@/components/Navbar'
-import React from 'react'
-import { Outlet } from 'react-router-dom'
-import Cursor from '@/components/Cursor'
-  const Layout = () => {
+import Navbar from "@/components/Navbar";
+import React from "react";
+import { Outlet, useLocation } from "react-router-dom";
+import Cursor from "@/components/Cursor";
+
+const Layout = () => {
+  const { pathname } = useLocation();
+  const isHome = pathname === "/";
+
   return (
     <div>
-         <Cursor />
-        <Navbar />
-        <div>
-            <Outlet />
-        </div>
-    </div>
-  )
-}
+      <Cursor />
 
-export default Layout
+      {/* ✅ Home: fixed + transparent | หน้าอื่น: relative + bg */}
+      <Navbar fixed={isHome} transparent={isHome} />
+
+      {/* ✅ กัน Navbar fixed ทับ content เฉพาะหน้า Home */}
+      <div className={isHome ? "pt-20" : ""}>
+        <Outlet />
+      </div>
+    </div>
+  );
+};
+
+export default Layout;

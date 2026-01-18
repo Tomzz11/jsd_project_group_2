@@ -1,124 +1,78 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import toast from 'react-hot-toast';
+import * as cartUtils from '../utils/cartUtils';
 
 const CartContext = createContext();
 
 export const useCart = () => {
   const context = useContext(CartContext);
   if (!context) {
-    throw new Error('useCart must be used within a CartProvider');
+    throw new Error('useCart must be used within CartProvider');
   }
   return context;
 };
 
 export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
+  const [cartCount, setCartCount] = useState(0);
 
+  // โหลดตะกร้าจาก localStorage ตอนเริ่มต้น
   useEffect(() => {
-    const savedCart = localStorage.getItem('cart');
-    if (savedCart) {
-      try {
-        setCartItems(JSON.parse(savedCart));
-      } catch (error) {
-        console.error('Error loading cart:', error);
-        localStorage.removeItem('cart');
-      }
-    }
+    const items = cartUtils.getCartItems();
+    setCartItems(items);
+    updateCartCount(items);
   }, []);
 
-  
-  useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(cartItems));
-  }, [cartItems]);
+  const updateCartCount = (items) => {
+    const count = items.reduce((sum, item) => sum + item.quantity, 0);
+    setCartCount(count);
+  };
 
-  
   const addToCart = (product, quantity = 1) => {
-    setCartItems((prevItems) => {
-      const existingItem = prevItems.find(item => item._id === product._id);
-      
-      if (existingItem) {
-        return prevItems.map(item =>
-          item._id === product._id
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
-        );
-      } else {
-        return [...prevItems, { ...product, quantity }];
-      }
-    });
-    
-    toast.success(`เพิ่ม ${product.name} ลงตะกร้าแล้ว`);
+    const updatedItems = cartUtils.addToCart(product, quantity);
+    setCartItems(updatedItems);
+    updateCartCount(updatedItems);
+    return true;
   };
 
-  
   const removeFromCart = (productId) => {
-    setCartItems((prevItems) => {
-      const item = prevItems.find(item => item._id === productId);
-      if (item) {
-        toast.success(`ลบ ${item.name} ออกจากตะกร้าแล้ว`);
-      }
-      return prevItems.filter(item => item._id !== productId);
-    });
+    const updatedItems = cartUtils.removeFromCart(productId);
+    setCartItems(updatedItems);
+    updateCartCount(updatedItems);
   };
 
- 
   const updateQuantity = (productId, quantity) => {
-    if (quantity < 1) {
+    if (quantity <= 0) {
       removeFromCart(productId);
       return;
     }
-
-    setCartItems((prevItems) =>
-      prevItems.map(item =>
-        item._id === productId
-          ? { ...item, quantity }
-          : item
-      )
-    );
+    const updatedItems = cartUtils.updateCartItemQuantity(productId, quantity);
+    setCartItems(updatedItems);
+    updateCartCount(updatedItems);
   };
 
   const clearCart = () => {
+    cartUtils.clearCart();
     setCartItems([]);
-    localStorage.removeItem('cart');
+    setCartCount(0);
   };
 
-  const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0);
-
-  const totalPrice = cartItems.reduce(
-    (total, item) => total + item.price * item.quantity,
-    0
-  );
-
-  const isInCart = (productId) => {
-    return cartItems.some(item => item._id === productId);
-  };
-
-  const getItemQuantity = (productId) => {
-    const item = cartItems.find(item => item._id === productId);
-    return item ? item.quantity : 0;
-  };
-
-  const value = {
-    cartItems,
-    addToCart,
-    removeFromCart,
-    updateQuantity,
-    clearCart,
-    totalItems,
-    totalPrice,
-    isInCart,
-    getItemQuantity
+  const getTotalPrice = () => {
+    return cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   };
 
   return (
-    <CartContext.Provider value={value}>
+    <CartContext.Provider
+      value={{
+        cartItems,
+        cartCount,
+        addToCart,
+        removeFromCart,
+        updateQuantity,
+        clearCart,
+        getTotalPrice,
+      }}
+    >
       {children}
     </CartContext.Provider>
   );
 };
-
-export default CartContext;
-
-
-
-
