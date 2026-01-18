@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 // import { loginMock } from "@/lib/auth"
 import axios from "axios";
+import { config } from "../config/config.js";
 
 const Login = () => {
   const [email, setEmail] = useState("")
@@ -30,7 +31,7 @@ const Login = () => {
   setError("")
   
   try {
-    const response = await axios.post('http://localhost:5000/api/auth/login', {
+    const response = await axios.post(`${config.apiUrl}/api/auth/login`, {
       email,
       password
     });

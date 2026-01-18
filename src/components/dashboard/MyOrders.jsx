@@ -3,6 +3,7 @@ import { useState , useEffect } from "react";
 import OrderCard from "./OrderCard.jsx";
 import OrderDetailsModal from "./OrderDetailsModal.jsx";
 import axios from "axios";
+import { config } from "../../config/config.js";
 
 
 
@@ -22,7 +23,7 @@ export default function MyOrders() {
     setLoading(true);
     try {
 
-      const response = await axios.get("http://localhost:5000/api/orders/myorders", {
+      const response = await axios.get(`${config.apiUrl}/api/orders/myorders`, {
         headers: {
           'Authorization': `Bearer ${getToken()}`
         }
