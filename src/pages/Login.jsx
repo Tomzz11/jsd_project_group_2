@@ -6,75 +6,93 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,  
-  CardAction,
+  CardTitle,
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Link, useLocation, useNavigate } from "react-router-dom"
-// import { loginMock } from "@/lib/auth"
-import axios from "axios";
-import { config } from "../config/config.js";
+import { useAuth } from "../context/AuthContext"
+import { useCart } from "../context/CartContext"
 
 const Login = () => {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
-  const [token, setToken] = useState("");
+  const [loading, setLoading] = useState(false)
 
   const navigate = useNavigate()
   const location = useLocation()
-  const from = location.state?.from?.pathname || "/dashboard"
-
- const handleSubmit = async (e) => {
-  e.preventDefault()
-  setError("")
+  const { login } = useAuth() // ✅ ใช้ login จาก AuthContext
+  const { syncCartOnLogin } = useCart()
   
-  try {
-    const response = await axios.post(`${config.apiUrl}/api/auth/login`, {
-      email,
-      password
-    });
-    
-    if (response.status === 200) {
-      const newToken = response.data.data.token; // ✅ เก็บไว้ในตัวแปร
-      
-      setToken(newToken); // อัปเดต state
-      localStorage.setItem("maipaws_token", newToken); // ✅ ใช้ค่าจากตัวแปร
-      
-      console.log("Token saved:", newToken);
-      
-      navigate(from, { replace: true });
+  const from = location.state?.from?.pathname || "/"
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setError("")
+    setLoading(true)
+
+    try {
+      // ✅ ใช้ login function จาก AuthContext
+      const result = await login(email, password)
+
+      if (result.success) {
+        // ✅ Sync cart จาก localStorage ไป Database
+        try {
+          await syncCartOnLogin()
+          console.log("Cart synced successfully")
+        } catch (cartError) {
+          console.error("Cart sync error:", cartError)
+          // ไม่ให้ cart sync error ขัดขวาง login
+        }
+
+        console.log("Login successful")
+
+        // Navigate to destination
+        navigate(from, { replace: true })
+      } else {
+        setError(result.message || "เข้าสู่ระบบไม่สำเร็จ")
+      }
+    } catch (error) {
+      console.error("Login error:", error)
+      setError("เกิดข้อผิดพลาดในการเข้าสู่ระบบ กรุณาลองใหม่อีกครั้ง")
+    } finally {
+      setLoading(false)
     }
-  } catch (error) {
-    console.error("Fetch error:", error);
-    setError("เข้าสู่ระบบไม่สำเร็จ");
   }
-}
 
   return (
     <div
-      className="flex min-h-screen gap-5 items-center justify-center p-4 bg-center absolute inset-0 z-0"
+      className="absolute inset-0 z-0 flex min-h-screen items-center justify-center gap-5 bg-center p-4"
       style={{ backgroundImage: "url('/ryan-walton-AbNO2iejoXA-unsplash.jpg')" }}
     >
-      <Card className="w-80"> <CardContent></CardContent>
-  <CardHeader>
-    <CardTitle> Email สำหรับเข้าสู่ระบบ</CardTitle>
-  </CardHeader>
-  <CardContent>
-    
-    <p> <p p className="font-bold">For user</p>  user@maipaws.com</p>
-    <p>password: 123456</p>
-    <p><p className="font-bold">For Admin</p> admin@maipaws.com</p>
-    <p>password: 123456</p>
-    <br />
-    <CardDescription className="text-red-500">
-            สามารถ sign up ใหม่โดยกำหนด email และ     password เพื่อเข้าสู่ระบบทดสอบได้
+      {/* Info Card */}
+      <Card className="w-80">
+        <CardContent></CardContent>
+        <CardHeader>
+          <CardTitle>Email สำหรับเข้าสู่ระบบ</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2 text-sm">
+            <div>
+              <p className="font-bold">For User</p>
+              <p>Email: user@maipaws.com</p>
+              <p>Password: 123456</p>
+            </div>
+            <div className="mt-3">
+              <p className="font-bold">For Admin</p>
+              <p>Email: admin@maipaws.com</p>
+              <p>Password: 123456</p>
+            </div>
+          </div>
+          <CardDescription className="mt-4 text-red-500">
+            สามารถ sign up ใหม่โดยกำหนด email และ password เพื่อเข้าสู่ระบบทดสอบได้
           </CardDescription>
-  </CardContent>
-  
-</Card>  
-      <Card className="w-[490px] h-[480px]">
+        </CardContent>
+      </Card>
+
+      {/* Login Form Card */}
+      <Card className="h-[480px] w-[490px]">
         <CardHeader className="mt-15 text-center">
           <CardTitle>Login to your account</CardTitle>
           <CardDescription>
@@ -82,11 +100,14 @@ const Login = () => {
           </CardDescription>
         </CardHeader>
 
-        {/* ✅ ใส่ onSubmit ที่ form และเอาปุ่ม login เข้าไปอยู่ใน form */}
         <CardContent>
           <form onSubmit={handleSubmit}>
             <div className="flex flex-col gap-6">
-              {error && <p className="text-sm text-red-500 text-center">{error}</p>}
+              {error && (
+                <div className="rounded bg-red-50 p-3 text-center text-sm text-red-600">
+                  {error}
+                </div>
+              )}
 
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
@@ -97,6 +118,7 @@ const Login = () => {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  disabled={loading}
                 />
               </div>
 
@@ -116,11 +138,19 @@ const Login = () => {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  disabled={loading}
                 />
               </div>
 
-              <Button type="submit" className="w-full">
-                Login
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    กำลังเข้าสู่ระบบ...
+                  </span>
+                ) : (
+                  "Login"
+                )}
               </Button>
             </div>
           </form>
@@ -139,4 +169,3 @@ const Login = () => {
 }
 
 export default Login
-

@@ -1,34 +1,81 @@
-import { Link } from "react-router-dom";
+// components/Cart/CartSummary.jsx
+import { Button } from '@/components/ui/button';
 
-export default function CartSummary({ total, onCheckout}) {
-    return  (
-        <div className="bg-white p-6 rounded-xl" >
-            <h3 className="text-lg font-semibold mb-4">Order Summary</h3>
+const CartSummary = ({ total, onCheckout }) => {
+  const shipping = total >= 1000 ? 0 : 50;
+  const finalTotal = total + shipping;
 
-            <div className="flex justify-between mb-4 text-sm">
-                <span>Subtotal</span>
-                <span>฿{total.toFixed(2)}</span>
-            </div>
-        
+  return (
+    <div className="space-y-4">
+      <h2 className="text-lg font-semibold text-gray-700">
+        Order Summary
+      </h2>
 
-        <div className="flex justify-between mb-4 text-sm" >
-            <span>Shipping</span>
-            <span>฿0</span>
+      <div className="space-y-2">
+        {/* Subtotal */}
+        <div className="flex justify-between text-sm">
+          <span className="text-gray-600">Subtotal</span>
+          <span className="font-medium">
+            ฿{total.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </span>
         </div>
 
-        <div className="flex justify-between font-bold text-lg mt-4" >
-            <span>Total</span>
-            <span>฿{total.toFixed(2)}</span>
+        {/* Shipping */}
+        <div className="flex justify-between text-sm">
+          <span className="text-gray-600">Shipping</span>
+          <span className="font-medium">
+            {shipping === 0 ? (
+              <span className="text-green-600">Free</span>
+            ) : (
+              `฿${shipping.toFixed(2)}`
+            )}
+          </span>
         </div>
 
-      <Link to="/Checkout">
-        <button 
-            className="w-full mt-6 bg-black text-white py-2 rounded-lg hover:bg-gray-800"
-            onClick={onCheckout} 
-        >
-            Proceed To Checkout
-        </button>
-        </Link>
+        {/* Free Shipping Notice */}
+        {total < 1000 && total > 0 && (
+          <p className="text-xs text-blue-600">
+            ซื้อเพิ่มอีก ฿{(1000 - total).toFixed(2)} เพื่อจัดส่งฟรี!
+          </p>
+        )}
+
+        <div className="border-t pt-2">
+          <div className="flex justify-between">
+            <span className="font-semibold text-gray-900">Total</span>
+            <span className="text-xl font-bold text-gray-900">
+              ฿{finalTotal.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Checkout Button */}
+      <Button
+        onClick={onCheckout}
+        className="w-full"
+        size="lg"
+        disabled={total <= 0}
+      >
+        Proceed to Checkout
+      </Button>
+
+      {/* Payment Methods */}
+      <div className="mt-4 border-t pt-4">
+        <p className="mb-2 text-xs text-gray-500">We accept</p>
+        <div className="flex gap-2">
+          <div className="flex h-8 w-12 items-center justify-center rounded border bg-white text-xs">
+            VISA
+          </div>
+          <div className="flex h-8 w-12 items-center justify-center rounded border bg-white text-xs">
+            MC
+          </div>
+          <div className="flex h-8 w-12 items-center justify-center rounded border bg-white text-xs">
+            QR
+          </div>
+        </div>
+      </div>
     </div>
-    );
-}
+  );
+};
+
+export default CartSummary;
