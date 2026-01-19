@@ -109,14 +109,25 @@ export const AdminProducts = () => {
   };
 
   return (
-    <div className="flex flex-col md:flex-row p-4 md:p-6 gap-4 min-h-screen">
-      {/* Sidebar - พี่ใช้เลย์เอาต์เดิมเป๊ะ */}
-      <aside className="w-full md:w-52 bg-[#ffeecb] p-3 h-fit mt-16 rounded-xl shadow-md">
-        <h2 className="text-2xl font-bold text-center mb-6 text-black">Products</h2>
-        <ul className="space-y-2 font-semibold text-gray-700">
-          <li><button onClick={() => navigate("/admin/products/add")} className="p-2 w-full text-left hover:text-orange-500">Add Products</button></li>
-          <li><button className="p-2 rounded text-indigo-500 bg-sky-400/40 w-full text-left font-bold border border-indigo-200">Manage List</button></li>
-          <li><button className="p-2 w-full text-left hover:text-red-700">Order Status</button></li>
+    <div className="flex flex-col md:flex-row p-4 md:p-6 gap-6 min-h-screen">
+      <aside className="w-full md:w-52 bg-[#ffeecb] p-3 h-fit mt-16 rounded-xl shadow-md self-start">
+        <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">Products</h2>
+        <ul className="space-y-2">
+          <li>
+             <button onClick={() => navigate("/admin/products/add")} className="p-2 rounded text-left hover:bg-white/30 w-full hover:text-orange-500 font-semibold">
+              Add Products
+            </button>
+          </li>
+          <li>
+            <button onClick={() => navigate("/admin/products")} className="flex gap-3 items-center p-2 rounded bg-sky-400/40 w-full  font-semibold text-indigo-500">
+              Manage List
+            </button>
+          </li>
+          <li>
+            <button onClick={() => navigate("/admin/update/orders")} className="flex gap-3 items-center p-2 rounded hover:bg-white/30 w-full hover:text-red-700 font-semibold">
+              Order Status
+            </button>
+          </li>
         </ul>
       </aside>
 
@@ -124,9 +135,9 @@ export const AdminProducts = () => {
         <section className="bg-[#dfe0df] p-6 rounded-xl shadow-sm border border-neutral-950">
           <h3 className="text-xl font-bold mb-4 text-black text-gray-800">Products Management</h3>
           
-          <input 
-            type="text" 
-            placeholder="ค้นหาชื่อสินค้า หรือ หมวดหมู่..." 
+          <input
+            type="text"
+            placeholder="ค้นหาชื่อสินค้า หรือ หมวดหมู่..."
             className="w-full p-2 border border-amber-700 rounded-lg mb-6 outline-none focus:ring-2 focus:ring-amber-600 bg-white text-black"
             value={searchQuery}
             onChange={(e) => {

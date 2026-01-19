@@ -52,7 +52,7 @@ export default function AddProduct() {
       const token = userInfo?.token || userInfo?.data?.token || userInfo; 
 
       if (!token || typeof token !== 'string') {
-        alert("พัง: ไม่เจอ Token ในระบบ กรุณาล็อคอินใหม่");
+        alert("ไม่เจอ Token ในระบบ กรุณาล็อคอินใหม่");
         return;
       }
 
@@ -63,17 +63,17 @@ export default function AddProduct() {
         },
       };
 
-      // --- จุดที่พี่ต้องดู: ปรับ Payload ให้ผ่าน Validation ---
+      // --- ปรับ Payload ให้ผ่าน Validation ---
       const payload = {
         name: form.name,
-        // *** สำคัญ: คำว่า category ตรงนี้ ต้องตรงกับ enum ใน backend ของพี่ ***
-        // เช่น ถ้า backend รับแค่ "Dog", "Cat" พี่ต้องส่งคำนั้นไป
-        category: form.category, 
-        price: Number(form.price), 
+        // *** สำคัญ: คำว่า category ตรงนี้ ต้องตรงกับ enum ใน backend ***
+        // เช่น ถ้า backend รับแค่ "Dog", "Cat" ต้องใส่คำนั้นไป
+        category: form.category,
+        price: Number(form.price),
         image: form.image || "/images/sample.jpg",
-        brand: "MaiPaws",             
-        description: "Product Detail", 
-        countInStock: 10,             
+        brand: "MaiPaws",
+        description: "Product Detail",
+        countInStock: 10,
       };
 
       await axios.post("http://localhost:5000/api/products", payload, config);
@@ -102,12 +102,12 @@ export default function AddProduct() {
             </button>
           </li>
           <li>
-            <button onClick={() => navigate("/admin/products")} className="flex gap-3 items-center p-2 rounded hover:bg-white/30 w-full hover:text-indigo-500 font-semibold text-gray-700">
+            <button onClick={() => navigate("/admin/products")} className="flex gap-3 items-center p-2 rounded hover:bg-white/30 w-full hover:text-indigo-500 font-semibold ">
               Manage List
             </button>
           </li>
           <li>
-            <button onClick={() => navigate("/admin/products")} className="flex gap-3 items-center p-2 rounded hover:bg-white/30 w-full hover:text-red-700 font-semibold text-gray-700">
+            <button onClick={() => navigate("/admin/update/orders")} className="flex gap-3 items-center p-2 rounded hover:bg-white/30 w-full hover:text-red-700 font-semibold ">
               Order Status
             </button>
           </li>
