@@ -1,24 +1,30 @@
-import path from "path"
-import tailwindcss from "@tailwindcss/vite"
-import react from "@vitejs/plugin-react"
 import { defineConfig } from "vite"
-import { config } from "../fornt_jsd_project_group_2/src/config/config";
+import react from "@vitejs/plugin-react"
+import tailwindcss from "@tailwindcss/vite"
+import path from "path"
+import { fileURLToPath } from "url" 
 
-// https://vite.dev/config/
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-   server: {
-    proxy: {
-      "/api": {
-        target: config.apiUrl, // 🔥 เปลี่ยนเป็น port backend ของอัส
-        changeOrigin: true,
-        secure: false,
-      },
-    },
-  },
   resolve: {
     alias: {
+      // บรรทัดนี้จะช่วยให้ @ ชี้ไปที่ src ได้ถูกต้อง ไม่ว่าจะรันที่ไหน
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  server: {
+    proxy: {
+      "/api": {
+        target: "http://localhost:5000", 
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/api/, ""),
+      },
+    },
+  },
 })
+
+
