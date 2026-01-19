@@ -2,11 +2,7 @@ import path from "path"
 import tailwindcss from "@tailwindcss/vite"
 import react from "@vitejs/plugin-react"
 import { defineConfig } from "vite"
-<<<<<<< HEAD
 import { config } from "../jsd_project_group_2/src/config/config";
-=======
-import { config } from "../front_jsd_project_group_2/src/config/config";
->>>>>>> dce974910d1ab92c6afce5b315708f7ba4f6d7d6
 
 // https://vite.dev/config/
 export default defineConfig({
