@@ -57,6 +57,18 @@ export const authAPI = {
   updateProfile: (data) => api.put('/auth/profile', data)
 };
 
+
+
+//ที่อยู่
+export const addressAPI = {
+  getAll: () => api.get("/auth/addresses"),
+  create: (data) => api.post("/auth/addresses", data),
+  update: (id, data) => api.put(`/auth/addresses/${id}`, data),
+  remove: (id) => api.delete(`/auth/addresses/${id}`),
+  setDefault: (id) => api.put(`/auth/addresses/${id}/default`),
+};
+
+
 // Product API   เกี่ยวกับสินค้า (ดึงรายการ, ดูรายละเอียด, แก้ไข, ลบ)
 export const productAPI = {
   getAll: (params) => api.get('/products', { params }),
@@ -75,6 +87,15 @@ export const orderAPI = {
   getById: (id) => api.get(`/orders/${id}`),
   getAll: () => api.get('/orders'),
   updateStatus: (id, status) => api.put(`/orders/${id}/status`, { status })
+};
+
+
+// Cart API    เกี่ยวกับตะกร้า (ดู/อัปเดต/ล้าง)
+export const cartAPI = {
+  get: () => api.get('/cart'),
+  upsert: (items) => api.put('/cart', { items }),   // แนะนำให้ backend ทำ upsert ที่ PUT
+  create: (items) => api.post('/cart', { items }),  // เผื่อ backend แยก POST
+  clear: () => api.delete('/cart')
 };
 
 export default api;

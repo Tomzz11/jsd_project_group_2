@@ -49,7 +49,7 @@ const Home = () => {
 
   if (loading)
     return (
-      <div className="absolute inset-0 z-0 flex h-screen items-center justify-center bg-[url('/catcat.jpg')] bg-center">
+      <div className="absolute inset-0 z-0 flex h-screen pt-250 items-center justify-center bg-[url('/catcat.jpg')] bg-center">
         <Progress value={progress} className="w-[60%]" />
       </div>
     );

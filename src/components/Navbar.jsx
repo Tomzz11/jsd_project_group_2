@@ -59,7 +59,7 @@ const Navbar = ({ fixed = false, transparent = false }) => {
         <ul 
           className={`relative z-10 flex gap-10 text-xl font-semibold items-center rounded-full px-6 py-3 ${
             isHomePage || transparent
-              ? "bg-white/20 backdrop-blur-md shadow-sm text-white"
+              ? "bg-white/20 backdrop-blur-md shadow-sm text-gray-900"
               : "bg-white/60 backdrop-blur-md shadow-sm text-gray-900"
           }`}
         >
