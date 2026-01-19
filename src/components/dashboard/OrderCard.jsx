@@ -11,9 +11,9 @@ export default function OrderCard({ order, onView }) {
     return (
         <div className="border rounded-lg p-4 flex justify-between items-center bg-white">
             <div>
-                <p className="font-semibold">Order #{order.id}</p>
+                <p className="font-semibold">Order #{order._id}</p>
                 <p className="text-sm text-gray-500">
-                    {order.date} • {order.time}
+                    {order.createdAt}
                 </p>
                 <p className="mt-1">Total: ${order.total.toFixed(2)}</p>
             </div>

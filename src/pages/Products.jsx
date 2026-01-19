@@ -3,10 +3,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { FaSearch, FaFilter, FaTimes } from "react-icons/fa";
 import { productAPI } from "../services/api";
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { useCart } from '../context/CartContext';
 import { toast } from 'sonner';
 
@@ -25,6 +22,8 @@ const Products = () => {
     searchParams.get("category") || "all"
   );
   const [showFilters, setShowFilters] = useState(false);
+
+  const { addToCart } = useCart(); // ✅ เอาไว้ข้างบน
 
   const categories = [
     { label: "ทั้งหมด", value: "all" },
@@ -106,20 +105,22 @@ const Products = () => {
     setSearchParams({});
   };
 
-const { addToCart } = useCart();
-
-  const handleAddToCart = (product) => {
-    const success = addToCart(product, 1);
-    if (success) {
-      toast.success(`เพิ่ม ${product.name} ลงตะกร้าแล้ว!`);
-    } else {
-      toast.error('ไม่สามารถเพิ่มสินค้าได้');
+  // ✅ แก้ให้เป็น async function
+  const handleAddToCart = async (product) => {
+    try {
+      const success = await addToCart(product, 1);
+      if (success) {
+        toast.success(`เพิ่ม ${product.name} ลงตะกร้าแล้ว!`);
+      } else {
+        toast.error('ไม่สามารถเพิ่มสินค้าได้');
+      }
+    } catch (error) {
+      console.error('Add to cart error:', error);
+      toast.error('เกิดข้อผิดพลาดในการเพิ่มสินค้า');
     }
   };
 
-
   const hasFilters = searchParams.get("search") || searchParams.get("category");
-  
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -278,11 +279,11 @@ const { addToCart } = useCart();
                     {/* Push actions to bottom */}
                     <div className="mt-auto flex gap-2">
                       <button
-      className="flex-1 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
-      onClick={() => handleAddToCart(product)}
-    >
-      Add to cart
-    </button>
+                        className="flex-1 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
+                        onClick={() => handleAddToCart(product)}
+                      >
+                        Add to cart
+                      </button>
                       <Link to={`/products/${product._id}`} className="flex-shrink-0">
                         <button className="rounded-xl border px-4 py-2 text-sm font-semibold hover:bg-muted">
                           View

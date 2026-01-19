@@ -1,99 +1,152 @@
-import { useCart } from '../context/CartContext';
+// pages/Cart.jsx
 import { useNavigate } from 'react-router-dom';
-import CartItem from '@/components/Cart/CartItem';
-import CartSummary from '@/components/Cart/CartSummary';
+import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
+import CartItem from '../components/Cart/CartItem';
+import CartSummary from '../components/Cart/CartSummary';
+import { Button } from '@/components/ui/button';
+import { ShoppingBag } from 'lucide-react';
 
 const Cart = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { 
     cartItems, 
     updateQuantity, 
     removeFromCart, 
     getTotalPrice,
-    clearCart 
+    clearCart,
+    loading 
   } = useCart();
 
+  const totalPrice = getTotalPrice();
+
+  const handleIncrease = (productId) => {
+    const item = cartItems.find(i => i._id === productId || i.product === productId);
+    if (item) {
+      updateQuantity(productId, item.quantity + 1);
+    }
+  };
+
+  const handleDecrease = (productId) => {
+    const item = cartItems.find(i => i._id === productId || i.product === productId);
+    if (item && item.quantity > 1) {
+      updateQuantity(productId, item.quantity - 1);
+    }
+  };
+
+  const handleRemove = (productId) => {
+    if (confirm('คุณต้องการลบสินค้านี้ออกจากตะกร้าหรือไม่?')) {
+      removeFromCart(productId);
+    }
+  };
+
   const handleCheckout = () => {
+    if (!user) {
+      navigate('/login', { state: { from: { pathname: '/checkout' } } });
+      return;
+    }
     navigate('/checkout');
   };
 
+  const handleClearCart = () => {
+    if (confirm('คุณต้องการล้างตะกร้าสินค้าทั้งหมดหรือไม่?')) {
+      clearCart();
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex h-[60vh] items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <div className="mx-auto max-w-6xl">
-        <div className="mb-6 flex items-center justify-between">
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        {/* Page Header */}
+        <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">Shopping Cart</h1>
-            <p className="text-sm text-gray-500">
-              Review your items before checkout
+            <h1 className="text-3xl font-bold text-gray-800">Shopping Cart</h1>
+            <p className="mt-1 text-sm text-gray-500">
+              {cartItems.length} {cartItems.length === 1 ? 'item' : 'items'} in your cart
             </p>
           </div>
+          
           {cartItems.length > 0 && (
-            <button
-              onClick={clearCart}
-              className="text-sm text-red-600 hover:text-red-700"
+            <Button
+              variant="outline"
+              onClick={handleClearCart}
+              className="text-red-600 hover:bg-red-50 hover:text-red-700"
             >
               Clear Cart
-            </button>
+            </Button>
           )}
         </div>
 
-        <div
-          className={`grid gap-6 ${
-            cartItems.length === 0
-              ? "grid-cols-1"
-              : "grid-cols-1 lg:grid-cols-3"
-          }`}
-        >
-          {/* Cart Items */}
-          <div
-            className={`rounded-lg p-4 ${
-              cartItems.length === 0
-                ? "bg-gray-50 text-center"
-                : "bg-white shadow"
-            } lg:col-span-2`}
-          >
-            <h2 className="mb-4 text-lg font-semibold text-gray-700">
-              Cart Items
-            </h2>
-
-            {cartItems.length === 0 ? (
-              <div className="py-10 text-gray-400">
-                <p className="text-lg">🛒 Your cart is empty</p>
-                <p className="mt-1 text-sm">
-                  Add some pet products to get started
-                </p>
-                <button
-                  onClick={() => navigate('/products')}
-                  className="mt-4 rounded-lg bg-primary px-6 py-2 text-white hover:opacity-90"
-                >
-                  Continue Shopping
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {cartItems.map((item) => (
-                  <CartItem
-                    key={item._id}
-                    item={item}
-                    onIncrease={() => updateQuantity(item._id, item.quantity + 1)}
-                    onDecrease={() => updateQuantity(item._id, item.quantity - 1)}
-                    onRemove={() => removeFromCart(item._id)}
-                  />
-                ))}
-              </div>
-            )}
+        {cartItems.length === 0 ? (
+          /* Empty Cart */
+          <div className="rounded-lg bg-white p-12 text-center shadow-sm">
+            <ShoppingBag className="mx-auto h-24 w-24 text-gray-300" />
+            <h3 className="mt-4 text-xl font-semibold text-gray-700">
+              Your cart is empty
+            </h3>
+            <p className="mt-2 text-gray-500">
+              Add some pet products to get started
+            </p>
+            <Button
+              onClick={() => navigate('/products')}
+              className="mt-6"
+              size="lg"
+            >
+              Continue Shopping
+            </Button>
           </div>
+        ) : (
+          /* Cart with Items */
+          <div className="grid gap-8 lg:grid-cols-3">
+            {/* Cart Items */}
+            <div className="space-y-4 lg:col-span-2">
+              <div className="rounded-lg bg-white p-6 shadow-sm">
+                <h2 className="mb-4 text-lg font-semibold text-gray-700">
+                  Cart Items
+                </h2>
+                <div className="space-y-4">
+                  {cartItems.map((item) => (
+                    <CartItem
+                      key={item._id || item.product}
+                      item={item}
+                      onIncrease={handleIncrease}
+                      onDecrease={handleDecrease}
+                      onRemove={handleRemove}
+                    />
+                  ))}
+                </div>
+              </div>
 
-          {/* Summary */}
-          {cartItems.length > 0 && (
-            <div className="h-fit rounded-lg bg-white p-4 shadow">
-              <CartSummary 
-                total={getTotalPrice()} 
-                onCheckout={handleCheckout} 
-              />
+              {/* Continue Shopping Button */}
+              <Button
+                variant="outline"
+                onClick={() => navigate('/products')}
+                className="w-full"
+              >
+                Continue Shopping
+              </Button>
             </div>
-          )}
-        </div>
+
+            {/* Order Summary */}
+            <div className="lg:col-span-1">
+              <div className="sticky top-24 rounded-lg bg-white p-6 shadow-sm">
+                <CartSummary 
+                  total={totalPrice} 
+                  onCheckout={handleCheckout} 
+                />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
