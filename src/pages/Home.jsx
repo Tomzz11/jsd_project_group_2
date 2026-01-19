@@ -130,64 +130,39 @@ const Home = () => {
                   stopOnInteraction: true,
                 }),
               ]}
-              className="mx-auto w-full max-w-4xl"
+              className="mx-auto w-full max-w-4xl "
             >
-              <CarouselContent className="-ml-3">
+              <CarouselContent className="-ml-6 pt-10 pb-10">
                 {featured.map((product) => (
-                  <CarouselItem key={product.id} className="basis-1/3 pl-3">
-                    <Card className="min-h-[480px] overflow-hidden rounded-3xl shadow-md">
-                      {/* Image area */}
-                      <div className="min-h-[200px] bg-muted">
-                        <img
-                          src={product.image}
-                          alt={product.name}
-                          className="h-full w-full object-cover"
-                          loading="lazy"
-                        />
-                      </div>
+                  <CarouselItem key={product._id} className="basis-1/3 pl-6">
+                    <Link to={`/products/${product._id}`}>
+                      <Card className="min-h-[480px] overflow-hidden rounded-3xl shadow-md pt-10 pb-10 transition-transform duration-300 hover:scale-[1.03]">
+                        {/* Image area */}
+                        <div className="min-h-[300px] bg-muted">
+                          <img
+                            src={product.image}
+                            alt={product.name}
+                            className="h-full w-full object-cover"
+                            loading="lazy"
+                          />
+                        </div>
 
-                      {/* Content area */}
-                      <CardContent className="flex h-[220px] flex-col p-6">
-                        <h3 className="line-clamp-2 text-base font-semibold">
-                          {product.name}
-                        </h3>
+                        {/* Content area */}
+                        <CardContent className="flex flex-col p-6">
+                          <h3 className="line-clamp-2 text-base font-semibold">
+                            {product.name}
+                          </h3>
 
-                        <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
-                          {product.description}
-                        </p>
-
-                        <div className="mt-3 flex items-end justify-between">
-                          <p className="text-xl font-bold">
-                            ฿{Number(product.price).toLocaleString("th-TH")}
+                          <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+                            {product.description}
                           </p>
 
-                          {product.originalPrice && (
-                            <p className="text-sm text-muted-foreground line-through">
-                              ฿
-                              {Number(product.originalPrice).toLocaleString(
-                                "th-TH"
-                              )}
-                            </p>
-                          )}
-                        </div>
-
-                        {/* Push actions to bottom */}
-                        <div className="mt-auto flex gap-2">
-                          <button
-                            className="flex-1 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
-                            onClick={() => console.log("add", product.id)}
-                          >
-                            Add to cart
-                          </button>
-                          <button
-                            className="rounded-xl border px-4 py-2 text-sm font-semibold hover:bg-muted"
-                            onClick={() => console.log("view", product.id)}
-                          >
-                            View
-                          </button>
-                        </div>
-                      </CardContent>
-                    </Card>
+                          <p className="pt-3 text-3xl font-bold">
+                            ฿{Number(product.price).toLocaleString("th-TH")}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    </Link>
                   </CarouselItem>
                 ))}
               </CarouselContent>
@@ -195,6 +170,42 @@ const Home = () => {
               <CarouselPrevious />
               <CarouselNext />
             </Carousel>
+          </div>
+        </section>
+        <section className="bg-gray-50 py-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 className="text-2xl md:text-3xl font-bold text-center mb-10">
+              ทำไมต้องเลือกเรา?
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="bg-white p-6 rounded-xl shadow-md text-center">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-3xl">✅</span>
+                </div>
+                <h3 className="font-semibold text-lg mb-2">สินค้าคุณภาพ</h3>
+                <p className="text-gray-500">
+                  คัดสรรสินค้าคุณภาพดี จากแบรนด์ชั้นนำ มั่นใจได้
+                </p>
+              </div>
+              <div className="bg-white p-6 rounded-xl shadow-md text-center">
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-3xl">🚚</span>
+                </div>
+                <h3 className="font-semibold text-lg mb-2">จัดส่งรวดเร็ว</h3>
+                <p className="text-gray-500">
+                  จัดส่งทั่วประเทศ รวดเร็ว ปลอดภัย ติดตามสถานะได้
+                </p>
+              </div>
+              <div className="bg-white p-6 rounded-xl shadow-md text-center">
+                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-3xl">💬</span>
+                </div>
+                <h3 className="font-semibold text-lg mb-2">บริการหลังขาย</h3>
+                <p className="text-gray-500">
+                  ทีมงานพร้อมให้คำปรึกษาและดูแลคุณตลอด 24 ชั่วโมง
+                </p>
+              </div>
+            </div>
           </div>
         </section>
       </main>

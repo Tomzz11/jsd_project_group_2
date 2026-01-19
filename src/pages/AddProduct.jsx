@@ -1,21 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 export default function AddProduct() {
   const navigate = useNavigate();
 
-  // ใส่ useEffect เพื่อคุมสีพื้นหลังให้เหมือนหน้า Admin
   useEffect(() => {
-    document.body.style.backgroundColor = "#FFF8EE"; // gray-100
+    document.body.style.backgroundColor = "#FFF8EE";
+    const draft = JSON.parse(localStorage.getItem("productDraft"));
+    if (draft) {
+      setForm(draft);
+    }
     return () => {
       document.body.style.backgroundColor = ""; 
     };
   }, []);
-
-  const handleLogout = () => {
-    localStorage.removeItem("adminToken");
-    navigate("/login");
-  };
 
   const [form, setForm] = useState({
     name: "",
@@ -45,72 +44,83 @@ export default function AddProduct() {
     setForm({ name: "", category: "", price: "", image: null });
   };
 
-  const submitForm = (e) => {
+  const submitForm = async (e) => {
     e.preventDefault();
-    console.log("New Product:", form);
-    alert("บันทึกสินค้าเรียบร้อยแล้ว!");
-    cancelForm();
-    localStorage.removeItem("productDraft");
-  };
+    try {
+      const storedUser = localStorage.getItem("userInfo") || localStorage.getItem("user");
+      const userInfo = storedUser ? JSON.parse(storedUser) : null;
+      const token = userInfo?.token || userInfo?.data?.token || userInfo; 
 
-  useEffect(() => {
-    const draft = JSON.parse(localStorage.getItem("productDraft"));
-    if (draft) {
-      setForm(draft);
+      if (!token || typeof token !== 'string') {
+        alert("ไม่เจอ Token ในระบบ กรุณาล็อคอินใหม่");
+        return;
+      }
+
+      const config = {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      };
+
+      // --- ปรับ Payload ให้ผ่าน Validation ---
+      const payload = {
+        name: form.name,
+        // *** สำคัญ: คำว่า category ตรงนี้ ต้องตรงกับ enum ใน backend ***
+        // เช่น ถ้า backend รับแค่ "Dog", "Cat" ต้องใส่คำนั้นไป
+        category: form.category,
+        price: Number(form.price),
+        image: form.image || "/images/sample.jpg",
+        brand: "MaiPaws",
+        description: "Product Detail",
+        countInStock: 10,
+      };
+
+      await axios.post("http://localhost:5000/api/products", payload, config);
+      
+      alert("บันทึกสินค้าเรียบร้อยแล้ว!");
+      cancelForm();
+      localStorage.removeItem("productDraft");
+      navigate("/admin/products");
+
+    } catch (error) {
+      const errResponse = error.response?.data;
+      console.error("--- BACKEND ERROR DETAIL ---");
+      console.log("Message:", errResponse?.message);
+      alert(`พัง: ${errResponse?.message || "Internal Server Error"}`);
     }
-  }, []);
+  };
 
   return (
     <div className="flex flex-col md:flex-row p-4 md:p-6 gap-6 min-h-screen">
-
-      {/* Sidebar */}
       <aside className="w-full md:w-52 bg-[#ffeecb] p-3 h-fit mt-16 rounded-xl shadow-md self-start">
-        <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">
-          Products
-        </h2>
-
+        <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">Products</h2>
         <ul className="space-y-2">
           <li>
-            <button
-              onClick={() => navigate("/add-product")}
-              className="flex gap-3 items-center p-2 rounded bg-white/40 w-full text-left font-semibold"
-            >
-              <div className="w-2 h-2 bg-gray-800 rounded-full" />
+             <button onClick={() => navigate("/admin/products/add")} className="p-2 rounded text-left bg-sky-400/40 w-full text-orange-500 font-semibold">
               Add Products
             </button>
           </li>
-
           <li>
-            <button
-              onClick={() => navigate("/AdminProducts")}
-              className="flex gap-3 items-center p-2 rounded hover:bg-white/30 w-full text-left"
-            >
-              <div className="w-2 h-2 bg-gray-600 rounded-full" />
+            <button onClick={() => navigate("/admin/products")} className="flex gap-3 items-center p-2 rounded hover:bg-white/30 w-full hover:text-indigo-500 font-semibold ">
               Manage List
             </button>
           </li>
-
           <li>
-            <button
-              onClick={handleLogout}
-              className="flex gap-3 items-center p-2 rounded hover:bg-white/30 w-full text-left text-red-700 font-medium"
-            >
-              <div className="w-2 h-2 bg-red-700 rounded-full" />
-              Log out
+            <button onClick={() => navigate("/admin/update/orders")} className="flex gap-3 items-center p-2 rounded hover:bg-white/30 w-full hover:text-red-700 font-semibold ">
+              Order Status
             </button>
           </li>
         </ul>
       </aside>
 
-      {/* Main - ปรับให้เป็นการ์ดสีขาวตัดกับพื้นหลังเทา */}
       <main className="flex-1 p-2">
-        <section className="bg-white p-6 md:p-10 rounded-xl shadow-sm border border-gray-100 max-w-3xl mx-auto">
+        <section className="bg-white p-6 md:p-10 rounded-xl shadow-sm border border-gray-100 max-w-3xl mx-auto text-black">
           <h3 className="text-2xl font-bold text-gray-800 mb-8 border-b pb-4">
             Add New Product
           </h3>
 
           <form onSubmit={submitForm} className="space-y-6">
-            {/* Image upload */}
             <div className="flex flex-col sm:flex-row items-center gap-6 p-4 bg-gray-50 rounded-lg border border-dashed border-gray-300">
               <div className="w-32 h-32 bg-white border-2 border-gray-200 rounded-lg overflow-hidden flex items-center justify-center shadow-inner">
                 {form.image ? (
@@ -121,7 +131,6 @@ export default function AddProduct() {
                   </div>
                 )}
               </div>
-
               <div className="flex flex-col gap-2">
                 <label className="text-sm font-medium text-gray-700">Product Image</label>
                 <input
@@ -133,7 +142,6 @@ export default function AddProduct() {
               </div>
             </div>
 
-            {/* Inputs */}
             <div className="grid grid-cols-1 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
@@ -143,22 +151,20 @@ export default function AddProduct() {
                   required
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-200 focus:border-purple-400 outline-none transition-all"
+                  className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-200 focus:border-purple-400 outline-none transition-all bg-white"
                 />
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
                 <input
                   type="text"
-                  placeholder="e.g. Electronics, Clothing"
+                  placeholder="Enter category (e.g. Cat, Dog)"
                   required
                   value={form.category}
                   onChange={(e) => setForm({ ...form, category: e.target.value })}
-                  className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-200 focus:border-purple-400 outline-none transition-all"
+                  className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-200 focus:border-purple-400 outline-none transition-all bg-white"
                 />
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Price ($)</label>
                 <input
@@ -167,35 +173,15 @@ export default function AddProduct() {
                   required
                   value={form.price}
                   onChange={(e) => setForm({ ...form, price: e.target.value })}
-                  className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-200 focus:border-purple-400 outline-none transition-all"
+                  className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-200 focus:border-purple-400 outline-none transition-all bg-white"
                 />
               </div>
             </div>
 
-            {/* Buttons */}
             <div className="flex flex-wrap gap-3 justify-end pt-6 border-t">
-              <button
-                type="button"
-                onClick={cancelForm}
-                className="px-6 py-2 rounded-lg font-medium text-gray-600 hover:bg-gray-100 transition-colors"
-              >
-                Clear
-              </button>
-
-              <button
-                type="button"
-                onClick={saveDraft}
-                className="bg-cyan-500 px-6 py-2 rounded-lg font-semibold text-white hover:bg-cyan-600 shadow-sm transition-all active:scale-95"
-              >
-                Save Draft
-              </button>
-
-              <button
-                type="submit"
-                className="bg-purple-600 px-8 py-2 rounded-lg font-semibold text-white hover:bg-purple-700 shadow-md transition-all active:scale-95"
-              >
-                Confirm Save
-              </button>
+              <button type="button" onClick={cancelForm} className="px-6 py-2 rounded-lg font-medium text-gray-600 hover:bg-gray-100 transition-colors">Clear</button>
+              <button type="button" onClick={saveDraft} className="bg-cyan-500 px-6 py-2 rounded-lg font-semibold text-white hover:bg-cyan-600 shadow-sm transition-all active:scale-95">Save Draft</button>
+              <button type="submit" className="bg-purple-600 px-8 py-2 rounded-lg font-semibold text-white hover:bg-purple-700 shadow-md transition-all active:scale-95">Confirm Save</button>
             </div>
           </form>
         </section>

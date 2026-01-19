@@ -2,6 +2,7 @@ import Navbar from "@/components/Navbar";
 import React from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import Cursor from "@/components/Cursor";
+import Footer from "@/components/Footer";
 
 const Layout = () => {
   const { pathname } = useLocation();
@@ -17,6 +18,7 @@ const Layout = () => {
       {/* ✅ กัน Navbar fixed ทับ content เฉพาะหน้า Home */}
       <div className={isHome ? "pt-20" : ""}>
         <Outlet />
+        <Footer />
       </div>
     </div>
   );
