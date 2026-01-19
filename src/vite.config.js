@@ -3,27 +3,31 @@ import react from "@vitejs/plugin-react"
 import tailwindcss from "@tailwindcss/vite"
 import path from "path"
 import { fileURLToPath } from "url" 
-import { config } from "./src/config/config.js" 
 
-// สร้าง __dirname สำหรับ ES Modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  resolve: {
+    alias: {
+      // บรรทัดนี้จะช่วยให้ @ ชี้ไปที่ src ได้ถูกต้อง ไม่ว่าจะรันที่ไหน
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
   server: {
     proxy: {
       "/api": {
-        target: config.apiUrl || "http://localhost:5000", 
+        target: "http://localhost:5000", 
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, ""),
       },
     },
   },
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-    },
-  },
 })
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> fb731bab0a48422ed2acf322255d4c2ea729efb9
