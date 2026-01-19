@@ -71,6 +71,9 @@ export default function Address() {
       setNewAddress({ label: "", address: "", city: "", postalCode: "", phone: "" });
       setShowForm(false);
     } catch (e) {
+        console.log("STATUS:", e?.response?.status);
+  console.log("DATA:", e?.response?.data);
+  console.log("HEADERS:", e?.response?.headers);
       console.error(e);
       setError(e.response?.data?.message || "เพิ่มที่อยู่ไม่สำเร็จ");
     } finally {
