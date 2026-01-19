@@ -1,56 +1,52 @@
 // pages/Cart.jsx
-import { useNavigate } from 'react-router-dom';
-import { useCart } from '../context/CartContext';
-import { useAuth } from '../context/AuthContext';
-import CartItem from '../components/Cart/CartItem';
-import CartSummary from '../components/Cart/CartSummary';
-import { Button } from '@/components/ui/button';
-import { ShoppingBag } from 'lucide-react';
+import { useNavigate } from "react-router-dom";
+import { useCart } from "../context/CartContext";
+import { useAuth } from "../context/AuthContext";
+import CartItem from "../components/Cart/CartItem";
+import CartSummary from "../components/Cart/CartSummary";
+import { Button } from "@/components/ui/button";
+import { ShoppingBag } from "lucide-react";
 
 const Cart = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { 
-    cartItems, 
-    updateQuantity, 
-    removeFromCart, 
+  const {
+    cartItems,
+    updateQuantity,
+    removeFromCart,
     getTotalPrice,
     clearCart,
-    loading 
+    loading,
   } = useCart();
 
   const totalPrice = getTotalPrice();
 
   const handleIncrease = (productId) => {
-    const item = cartItems.find(i => i._id === productId || i.product === productId);
-    if (item) {
-      updateQuantity(productId, item.quantity + 1);
-    }
+    const item = cartItems.find((i) => i.productId === productId);
+    if (item) updateQuantity(productId, item.quantity + 1);
   };
 
   const handleDecrease = (productId) => {
-    const item = cartItems.find(i => i._id === productId || i.product === productId);
-    if (item && item.quantity > 1) {
-      updateQuantity(productId, item.quantity - 1);
-    }
+    const item = cartItems.find((i) => i.productId === productId);
+    if (item && item.quantity > 1) updateQuantity(productId, item.quantity - 1);
   };
 
   const handleRemove = (productId) => {
-    if (confirm('คุณต้องการลบสินค้านี้ออกจากตะกร้าหรือไม่?')) {
+    if (confirm("คุณต้องการลบสินค้านี้ออกจากตะกร้าหรือไม่?")) {
       removeFromCart(productId);
     }
   };
 
   const handleCheckout = () => {
     if (!user) {
-      navigate('/login', { state: { from: { pathname: '/checkout' } } });
+      navigate("/login", { state: { from: { pathname: "/checkout" } } });
       return;
     }
-    navigate('/checkout');
+    navigate("/checkout");
   };
 
   const handleClearCart = () => {
-    if (confirm('คุณต้องการล้างตะกร้าสินค้าทั้งหมดหรือไม่?')) {
+    if (confirm("คุณต้องการล้างตะกร้าสินค้าทั้งหมดหรือไม่?")) {
       clearCart();
     }
   };
@@ -58,7 +54,7 @@ const Cart = () => {
   if (loading) {
     return (
       <div className="flex h-[60vh] items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -71,10 +67,11 @@ const Cart = () => {
           <div>
             <h1 className="text-3xl font-bold text-gray-800">Shopping Cart</h1>
             <p className="mt-1 text-sm text-gray-500">
-              {cartItems.length} {cartItems.length === 1 ? 'item' : 'items'} in your cart
+              {cartItems.length} {cartItems.length === 1 ? "item" : "items"} in
+              your cart
             </p>
           </div>
-          
+
           {cartItems.length > 0 && (
             <Button
               variant="outline"
@@ -97,7 +94,7 @@ const Cart = () => {
               Add some pet products to get started
             </p>
             <Button
-              onClick={() => navigate('/products')}
+              onClick={() => navigate("/products")}
               className="mt-6"
               size="lg"
             >
@@ -113,10 +110,11 @@ const Cart = () => {
                 <h2 className="mb-4 text-lg font-semibold text-gray-700">
                   Cart Items
                 </h2>
+
                 <div className="space-y-4">
                   {cartItems.map((item) => (
                     <CartItem
-                      key={item._id || item.product}
+                      key={item.productId}              // ✅ เปลี่ยน
                       item={item}
                       onIncrease={handleIncrease}
                       onDecrease={handleDecrease}
@@ -126,10 +124,9 @@ const Cart = () => {
                 </div>
               </div>
 
-              {/* Continue Shopping Button */}
               <Button
                 variant="outline"
-                onClick={() => navigate('/products')}
+                onClick={() => navigate("/products")}
                 className="w-full"
               >
                 Continue Shopping
@@ -139,10 +136,7 @@ const Cart = () => {
             {/* Order Summary */}
             <div className="lg:col-span-1">
               <div className="sticky top-24 rounded-lg bg-white p-6 shadow-sm">
-                <CartSummary 
-                  total={totalPrice} 
-                  onCheckout={handleCheckout} 
-                />
+                <CartSummary total={totalPrice} onCheckout={handleCheckout} />
               </div>
             </div>
           </div>
