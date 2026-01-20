@@ -31,6 +31,8 @@ export default function OrderDetailsModal({ order, onClose}) {
     };
 
      const subtotal = calculateSubtotal();
+     // ฟรีค่าจัดส่งถ้าซื้อครบ 1000 บาท ซื้อไม่ถึงคิด 50 บาท
+    const shipping = subtotal >= 1000 ? 0 : 50;
 
     return (
         <div 
@@ -111,11 +113,11 @@ export default function OrderDetailsModal({ order, onClose}) {
                     <div className="flex justify-between ">
                         <span>Shipping</span>
                         {/* <span>${order.shipping.toFixed(2)}</span> */}
-                        <span>FREE</span>
+                        <span>{shipping === 0 ? 'FREE' : `฿${formatPrice(shipping)}`}</span>
                     </div>
                     <div className="flex justify-between font-semibold">
                         <span>Total</span>
-                        <span>฿{formatPrice(order.total)}</span>
+                        <span>฿{formatPrice(subtotal + shipping)}</span>
                     </div>
                 </div>
 
