@@ -15,6 +15,7 @@ import { AdminProducts } from "./pages/AdminProducts";
 import AddProduct from "./pages/AddProduct";
 import { Toaster } from 'sonner';
 import ProtectedRoute from "./components/ProtectedRoute";
+import { UpdateStatus } from "./pages/UpdateStatus";
 
 const router = createBrowserRouter([
   {
@@ -69,10 +70,7 @@ const router = createBrowserRouter([
             path: "payment",
             element: <Payment />,
           },
-          {
-            path : "/add-product",
-            element : <AddProduct />,
-          },
+          
         ],
       },
 
@@ -87,6 +85,10 @@ const router = createBrowserRouter([
           {
             path: "admin/products/add",
             element: <AddProduct />,
+          },
+          {
+            path: "admin/update/orders",
+            element: <UpdateStatus />,
           },
         ],
       },
