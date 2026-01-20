@@ -4,10 +4,20 @@ import axios from "axios";
 
 export const AdminProducts = () => {
   const navigate = useNavigate();
+
+  // ✅ กำหนด Category (พิมพ์เล็กทั้งหมด)
+  const CATEGORIES = ["cat", "dog", "bird", "fish"];
+
   const [data, setData] = useState([]); 
   const [searchQuery, setSearchQuery] = useState("");
   const [editIndex, setEditIndex] = useState(null);
-  const [editForm, setEditForm] = useState({ name: "", category: "", price: "", image: "" });
+  const [editForm, setEditForm] = useState({ 
+    name: "", 
+    category: "", 
+    price: "", 
+    image: "",
+    description: ""
+  });
   const [currentPage, setCurrentPage] = useState(1);
   const maxRows = 6;
 
@@ -15,7 +25,6 @@ export const AdminProducts = () => {
     try {
       const storedUser = localStorage.getItem("userInfo") || localStorage.getItem("user");
       const userInfo = storedUser ? JSON.parse(storedUser) : null;
-      // ดึง Token ออกมาให้ชัวร์
       const token = userInfo?.token || userInfo?.data?.token || userInfo;
 
       const config = { headers: { Authorization: `Bearer ${token}` } };
@@ -50,7 +59,15 @@ export const AdminProducts = () => {
     const itemToEdit = currentTableData[indexInCurrentPage];
     const actualIndex = data.findIndex(i => i._id === itemToEdit._id);
     setEditIndex(actualIndex);
-    setEditForm({ ...data[actualIndex] }); // ใช้ spread เพื่อไม่ให้ค่าทับกันตรงๆ
+    setEditForm({ 
+      name: data[actualIndex].name || "",
+      category: data[actualIndex].category || "",
+      price: data[actualIndex].price || "",
+      image: data[actualIndex].image || "",
+      description: data[actualIndex].description || "",
+      brand: data[actualIndex].brand || "General",
+      countInStock: data[actualIndex].countInStock || 10
+    });
   };
 
   const closeModal = () => setEditIndex(null);
@@ -62,14 +79,13 @@ export const AdminProducts = () => {
       const userInfo = storedUser ? JSON.parse(storedUser) : null;
       const token = userInfo?.token || userInfo?.data?.token || userInfo;
 
-      // ส่งข้อมูลให้ครบเหมือนตอน Add (เผื่อ Backend บังคับ Validation)
       const dataToUpdate = {
         name: editForm.name,
-        category: editForm.category,
+        category: editForm.category, // ✅ ส่งเป็นพิมพ์เล็ก
         price: Number(editForm.price),
         image: editForm.image,
         brand: editForm.brand || "General",
-        description: editForm.description || "Updated Product",
+        description: editForm.description || "No description",
         countInStock: editForm.countInStock || 10
       };
 
@@ -78,7 +94,7 @@ export const AdminProducts = () => {
       });
 
       alert("แก้ไขข้อมูลสำเร็จ!");
-      await fetchProducts(); // ดึงข้อมูลใหม่มาโชว์
+      await fetchProducts();
       closeModal();
     } catch (error) { 
       console.error("Update fail:", error.response?.data || error.message); 
@@ -94,13 +110,12 @@ export const AdminProducts = () => {
         const userInfo = storedUser ? JSON.parse(storedUser) : null;
         const token = userInfo?.token || userInfo?.data?.token || userInfo;
 
-        // แก้ไข: axios.delete ต้องส่ง config เป็น parameter ตัวที่ 2
         await axios.delete(`http://localhost:5000/api/products/${itemToDelete._id}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
 
         alert("ลบสำเร็จ!");
-        await fetchProducts(); // ดึงข้อมูลใหม่หลังลบ
+        await fetchProducts();
       } catch (error) { 
         console.error("Delete fail:", error.response?.data || error.message); 
         alert("ลบไม่สำเร็จ");
@@ -196,20 +211,54 @@ export const AdminProducts = () => {
       {/* Modal Edit */}
       {editIndex !== null && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-md text-black">
+          <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-md text-black max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold mb-4">Edit Product</h2>
             <div className="space-y-3">
               <div>
                 <label className="text-xs font-bold text-gray-500 block mb-1">ชื่อสินค้า</label>
-                <input className="border p-2 w-full rounded focus:ring-2 focus:ring-blue-400 outline-none" value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} />
+                <input 
+                  className="border p-2 w-full rounded focus:ring-2 focus:ring-blue-400 outline-none" 
+                  value={editForm.name} 
+                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} 
+                />
               </div>
+
+              {/* ✅ เปลี่ยนเป็น select dropdown (พิมพ์เล็ก) */}
               <div>
                 <label className="text-xs font-bold text-gray-500 block mb-1">หมวดหมู่</label>
-                <input className="border p-2 w-full rounded focus:ring-2 focus:ring-blue-400 outline-none" value={editForm.category} onChange={(e) => setEditForm({ ...editForm, category: e.target.value })} />
+                <select 
+                  className="border p-2 w-full rounded focus:ring-2 focus:ring-blue-400 outline-none" 
+                  value={editForm.category} 
+                  onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
+                >
+                  <option value="">-- Select Category --</option>
+                  {CATEGORIES.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
               </div>
+              
+              <div>
+                <label className="text-xs font-bold text-gray-500 block mb-1">คำอธิบาย</label>
+                <textarea 
+                  className="border p-2 w-full rounded focus:ring-2 focus:ring-blue-400 outline-none resize-none" 
+                  rows="4"
+                  value={editForm.description} 
+                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} 
+                  placeholder="กรอกคำอธิบายสินค้า"
+                />
+              </div>
+
               <div>
                 <label className="text-xs font-bold text-gray-500 block mb-1">ราคา</label>
-                <input className="border p-2 w-full rounded focus:ring-2 focus:ring-blue-400 outline-none" type="number" value={editForm.price} onChange={(e) => setEditForm({ ...editForm, price: e.target.value })} />
+                <input 
+                  className="border p-2 w-full rounded focus:ring-2 focus:ring-blue-400 outline-none" 
+                  type="number" 
+                  value={editForm.price} 
+                  onChange={(e) => setEditForm({ ...editForm, price: e.target.value })} 
+                />
               </div>
             </div>
             <div className="flex justify-end gap-2 mt-6 border-t pt-4">
