@@ -6,6 +6,7 @@ import { productAPI } from "../services/api";
 import { Card, CardContent } from "@/components/ui/card";
 import { useCart } from '../context/CartContext';
 import { toast } from 'sonner';
+import { duration } from "moment/moment";
 
 const Products = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -110,13 +111,13 @@ const Products = () => {
     try {
       const success = await addToCart(product, 1);
       if (success) {
-        toast.success(`เพิ่ม ${product.name} ลงตะกร้าแล้ว!`);
+        toast.success(`เพิ่ม ${product.name} ลงตะกร้าแล้ว!`,{duration:1000,});
       } else {
-        toast.error('ไม่สามารถเพิ่มสินค้าได้');
+        toast.error('ไม่สามารถเพิ่มสินค้าได้',{duration:1000,});
       }
     } catch (error) {
       console.error('Add to cart error:', error);
-      toast.error('เกิดข้อผิดพลาดในการเพิ่มสินค้า');
+      toast.error('เกิดข้อผิดพลาดในการเพิ่มสินค้า',{duration:1000,});
     }
   };
 
