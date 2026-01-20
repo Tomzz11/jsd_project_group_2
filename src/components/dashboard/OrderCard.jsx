@@ -15,7 +15,7 @@ export default function OrderCard({ order, onView }) {
                 <p className="text-sm text-gray-500">
                     {order.createdAt}
                 </p>
-                <p className="mt-1">Total: ${order.total.toFixed(2)}</p>
+                <p className="mt-1">Total: ฿{order.total.toFixed(2)}</p>
             </div>
 
             <div className="text-right">

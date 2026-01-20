@@ -18,6 +18,20 @@ const paymentStatusColor = {
 export default function OrderDetailsModal({ order, onClose}) {
     if (!order) return null;
 
+     // Function to format number with comma separator
+    const formatPrice = (price) => {
+        return price.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    };
+
+    // Calculate subtotal from order items
+    const calculateSubtotal = () => {
+        return order.items.reduce((sum, item) => {
+            return sum + (item.price * item.quantity);
+        }, 0);
+    };
+
+     const subtotal = calculateSubtotal();
+
     return (
         <div 
             className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
@@ -79,7 +93,7 @@ export default function OrderDetailsModal({ order, onClose}) {
                                     {item.name} × {item.quantity}
                                 </span>
                                 <span>
-                                    ${(item.price * item.quantity).toFixed(2)}
+                                    ฿{(item.price * item.quantity).toFixed(2)}
                                 </span>
                             </div>
                         ))}
@@ -90,18 +104,18 @@ export default function OrderDetailsModal({ order, onClose}) {
                 <div className="border-t pt-4 space-y-1 text-sm">
                     <div className="flex justify-between">
                         <span>Subtotal</span>
-                        {/* <span>${order.subtotal.toFixed(2)}</span> */}
-                        <span>20</span>
+                        <span>฿{formatPrice(subtotal)}</span>
+
 
                     </div>
                     <div className="flex justify-between ">
                         <span>Shipping</span>
                         {/* <span>${order.shipping.toFixed(2)}</span> */}
-                        <span>50</span>
+                        <span>FREE</span>
                     </div>
                     <div className="flex justify-between font-semibold">
                         <span>Total</span>
-                        <span>${order.total.toFixed(2)}</span>
+                        <span>฿{formatPrice(order.total)}</span>
                     </div>
                 </div>
 
