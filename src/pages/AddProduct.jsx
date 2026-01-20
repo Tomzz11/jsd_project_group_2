@@ -45,51 +45,81 @@ export default function AddProduct() {
   };
 
   const submitForm = async (e) => {
-    e.preventDefault();
-    try {
-      const storedUser = localStorage.getItem("userInfo") || localStorage.getItem("user");
-      const userInfo = storedUser ? JSON.parse(storedUser) : null;
-      const token = userInfo?.token || userInfo?.data?.token || userInfo; 
+  e.preventDefault();
+  try {
+    const storedUser = localStorage.getItem("userInfo") || localStorage.getItem("user");
+    const userInfo = storedUser ? JSON.parse(storedUser) : null;
+    const token = userInfo?.token || userInfo?.data?.token || userInfo;
 
-      if (!token || typeof token !== 'string') {
-        alert("ไม่เจอ Token ในระบบ กรุณาล็อคอินใหม่");
-        return;
-      }
+    if (!token || typeof token !== 'string') {
+      alert("ไม่เจอ Token ในระบบ กรุณาล็อคอินใหม่");
+      return;
+    }
 
-      const config = {
+    // ✅ Step 1: อัพโหลดรูปไป Cloudinary ก่อน (ถ้ามีรูป)
+    let imageUrl = "/images/sample.jpg"; // ค่าเริ่มต้น
+    
+    if (form.image && form.image.startsWith("data:")) {
+      // แปลง base64 เป็น File object
+      const blob = await fetch(form.image).then(r => r.blob());
+      const file = new File([blob], "product.jpg", { type: blob.type });
+      
+      const formData = new FormData();
+      formData.append("image", file);
+
+      const uploadConfig = {
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${token}`,
         },
       };
 
-      // --- ปรับ Payload ให้ผ่าน Validation ---
-      const payload = {
-        name: form.name,
-        // *** สำคัญ: คำว่า category ตรงนี้ ต้องตรงกับ enum ใน backend ***
-        // เช่น ถ้า backend รับแค่ "Dog", "Cat" ต้องใส่คำนั้นไป
-        category: form.category,
-        price: Number(form.price),
-        image: form.image || "/images/sample.jpg",
-        brand: "MaiPaws",
-        description: "Product Detail",
-        countInStock: 10,
-      };
+      const uploadRes = await axios.post(
+        "http://localhost:5000/api/upload/product",
+        formData,
+        uploadConfig
+      );
 
-      await axios.post("http://localhost:5000/api/products", payload, config);
-      
-      alert("บันทึกสินค้าเรียบร้อยแล้ว!");
-      cancelForm();
-      localStorage.removeItem("productDraft");
-      navigate("/admin/products");
-
-    } catch (error) {
-      const errResponse = error.response?.data;
-      console.error("--- BACKEND ERROR DETAIL ---");
-      console.log("Message:", errResponse?.message);
-      alert(`พัง: ${errResponse?.message || "Internal Server Error"}`);
+      if (uploadRes.data.success) {
+        imageUrl = uploadRes.data.data.url; // เอา URL จาก Cloudinary
+      } else {
+        alert("อัพโหลดรูปไม่สำเร็จ");
+        return;
+      }
     }
-  };
+
+    // ✅ Step 2: สร้างสินค้าพร้อม URL รูปจาก Cloudinary
+    const config = {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+
+    const payload = {
+      name: form.name,
+      category: form.category,
+      price: Number(form.price),
+      image: imageUrl, // ใช้ URL จาก Cloudinary
+      brand: "MaiPaws",
+      description: "Product Detail",
+      countInStock: 10,
+    };
+
+    await axios.post("http://localhost:5000/api/products", payload, config);
+    
+    alert("บันทึกสินค้าเรียบร้อยแล้ว!");
+    cancelForm();
+    localStorage.removeItem("productDraft");
+    navigate("/admin/products");
+
+  } catch (error) {
+    const errResponse = error.response?.data;
+    console.error("--- BACKEND ERROR DETAIL ---");
+    console.log("Message:", errResponse?.message);
+    alert(`พัง: ${errResponse?.message || "Internal Server Error"}`);
+  }
+};
 
   return (
     <div className="flex flex-col md:flex-row p-4 md:p-6 gap-6 min-h-screen">
