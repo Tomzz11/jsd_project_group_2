@@ -60,10 +60,18 @@ export const UpdateStatus = () => {
     }
   };
 
+  // const deleteOrder = async (orderId) => {
+  //   try {
+      
+  //   } catch (error) {
+      
+  //   }
+  // }
+
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
       case "pending": return "bg-orange-100 text-orange-600 border-orange-200";
-      case "shipped": return "bg-blue-100 text-blue-600 border-blue-200";
+      case "paid": return "bg-blue-100 text-blue-600 border-blue-200";
       case "delivered": return "bg-green-100 text-green-600 border-green-200";
       case "cancelled": return "bg-red-100 text-red-600 border-red-200";
       default: return "bg-gray-100 text-gray-600 border-gray-200";
@@ -133,7 +141,7 @@ export const UpdateStatus = () => {
                     <td className="p-4 border-b" onClick={(e) => e.stopPropagation()}>
                       <select className="p-1.5 text-xs border rounded-lg font-bold" value={order.status || "pending"} onChange={(e) => updateStatus(order._id, e.target.value)}>
                         <option value="pending">Pending</option>
-                        <option value="shipped">Shipped</option>
+                        <option value="paid">paid</option>
                         <option value="delivered">Delivered</option>
                         <option value="cancelled">Cancelled</option>
                       </select>
