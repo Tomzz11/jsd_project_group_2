@@ -5,6 +5,7 @@ import { defineConfig } from "vite"
 import { config } from "./src/config/config.js";
 
 
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],

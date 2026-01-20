@@ -1,6 +1,6 @@
-import React, { useMemo, useState } from "react"
+import React, { useMemo, useState } from "react";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   Field,
   FieldDescription,
@@ -8,24 +8,22 @@ import {
   FieldLabel,
   FieldLegend,
   FieldSet,
-} from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Link, useNavigate } from "react-router-dom"
-
-import { registerMock, loginMock } from "@/lib/auth"
+} from "@/components/ui/select";
+import { Link, useNavigate } from "react-router-dom";
 
 import axios from "axios";
-
 import { config } from "../config/config.js";
+
 const Register = () => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const [form, setForm] = useState({
     firstName: "",
@@ -36,81 +34,87 @@ const Register = () => {
     dobDay: "",
     dobMonth: "",
     dobYear: "",
-  })
+  });
 
-  const [error, setError] = useState("")
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const years = useMemo(() => {
-    // ให้เป็นปีสมจริง เช่น 1950 - 2026
-    const currentYear = new Date().getFullYear()
-    const list = []
-    for (let y = currentYear; y >= 1950; y--) list.push(String(y))
-    return list
-  }, [])
+    const currentYear = new Date().getFullYear();
+    const list = [];
+    for (let y = currentYear; y >= 1950; y--) list.push(String(y));
+    return list;
+  }, []);
 
-  const days = useMemo(() => Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, "0")), [])
-  const months = useMemo(() => Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0")), [])
+  const days = useMemo(
+    () => Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, "0")),
+    []
+  );
+  const months = useMemo(
+    () => Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0")),
+    []
+  );
 
   const setField = (key) => (e) => {
-    setForm((prev) => ({ ...prev, [key]: e.target.value }))
-  }
+    setForm((prev) => ({ ...prev, [key]: e.target.value }));
+  };
 
-  const  handleSubmit = async (e) => {
-    e.preventDefault()
-    setError("")
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
 
     // validation เบื้องต้น
-    if (!form.firstName || !form.lastName) return setError("Please enter name and lastname")
-    if (!form.email) return setError("Please enter email")
-    if (!form.password || form.password.length < 4) return setError("Password must be at least 4 characters")
-    if (!form.phone) return setError("Please enter phone")
-    if (!form.dobDay || !form.dobMonth || !form.dobYear) return setError("Please select date of birth")
+    if (!form.firstName.trim() || !form.lastName.trim())
+      return setError("Please enter name and lastname");
+    if (!form.email.trim()) return setError("Please enter email");
+    if (!form.password || form.password.length < 4)
+      return setError("Password must be at least 4 characters");
+    if (!form.phone.trim()) return setError("Please enter phone");
+    if (!form.dobDay || !form.dobMonth || !form.dobYear)
+      return setError("Please select date of birth");
+
+    // (optional) กันวันที่ไม่จริง เช่น 31/02
+    const isoBirthday = `${form.dobYear}-${form.dobMonth}-${form.dobDay}`;
+    const d = new Date(isoBirthday);
+    if (Number.isNaN(d.getTime())) return setError("Invalid date of birth");
+
+    const userData = {
+      name: form.firstName.trim(),
+      lastName: form.lastName.trim(),
+      email: form.email.trim().toLowerCase(),
+      password: form.password,
+      phone: form.phone.trim(),
+      birthday: isoBirthday, // ✅ แก้ชื่อ key ให้ตรง backend
+      avatarUrl: "/avatars/default-user.png",
+    };
 
     try {
-      // 1) register (เพิ่ม user ลง localStorage)
-      // registerMock({
-      //   email: form.email,
-      //   password: form.password,
-      //   // เผื่ออยากเก็บ profile เพิ่ม (ถ้า auth.js รองรับ)
-      //   profile: {
-      //     displayName: `${form.firstName} ${form.lastName}`,
-      //     firstName: form.firstName,
-      //     lastName: form.lastName,
-      //     phone: form.phone,
-      //     birthday: `${form.dobYear}-${form.dobMonth}-${form.dobDay}`,
-      //   },
-      // })
-      
+      setLoading(true);
 
-      const userData = {
-        name: form.firstName,
-        lastName: form.lastName,
-        email: form.email,
-        password: form.password,
-        phone: form.phone,
-        birtday: `${form.dobYear}-${form.dobMonth}-${form.dobDay}`,
-        avatarUrl: "/avatars/default-user.png",
+      const response = await axios.post(
+        `${config.apiUrl}/api/auth/register`,
+        userData
+      );
+
+      // ✅ backend ส่ง 201 ตอนสมัครสำเร็จ
+      if (response.status === 201 && response.data?.success) {
+        navigate("/Login", { replace: true });
+        return;
       }
 
-      const response = await axios.post(`${config.apiUrl}/api/auth/register`, userData);
-      if (response.status === 200) {
-        console.log(response) ;
-      }
-    } catch (error) {
-      console.error("Fetch error:", error);
+      // เผื่อกรณีตอบกลับมาแต่ success=false
+      setError(response.data?.message || "Register failed");
+    } catch (err) {
+      // ✅ โชว์ข้อความจริงจาก backend (เช่น อีเมลซ้ำ/เบอร์ซ้ำ)
+      const msg =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Register failed";
+      setError(msg);
     } finally {
-      navigate("/Login", { replace: true })
+      setLoading(false);
     }
-
-      // 2) login อัตโนมัติ
-  
-
-      // 3) ไป dashboard
-
-    // } catch (err) {
-    //   setError(err?.message || "Register failed")
-    // }
-  }
+  };
 
   return (
     <div
@@ -122,7 +126,9 @@ const Register = () => {
           <FieldGroup>
             <FieldSet>
               <FieldLegend>Register</FieldLegend>
-              <FieldDescription>All transactions are secure and encrypted</FieldDescription>
+              <FieldDescription>
+                All transactions are secure and encrypted
+              </FieldDescription>
 
               <FieldGroup>
                 {error && <p className="text-sm text-red-500">{error}</p>}
@@ -131,7 +137,6 @@ const Register = () => {
                   <FieldLabel>Name</FieldLabel>
                   <Input
                     placeholder="Enter your name"
-                    required
                     value={form.firstName}
                     onChange={setField("firstName")}
                   />
@@ -139,7 +144,6 @@ const Register = () => {
                   <FieldLabel className="mt-3">Lastname</FieldLabel>
                   <Input
                     placeholder="Enter your lastname"
-                    required
                     value={form.lastName}
                     onChange={setField("lastName")}
                   />
@@ -150,7 +154,6 @@ const Register = () => {
                   <Input
                     id="useremail"
                     placeholder="example@gmail.com"
-                    required
                     type="email"
                     value={form.email}
                     onChange={setField("email")}
@@ -160,18 +163,24 @@ const Register = () => {
                   <Input
                     id="userpassword"
                     placeholder="Enter your password"
-                    required
                     type="password"
                     value={form.password}
                     onChange={setField("password")}
                   />
-                  <p className="text-xs text-gray-500 mt-1">Mock register: password อย่างน้อย 4 ตัว</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Password อย่างน้อย 4 ตัว
+                  </p>
                 </Field>
 
                 <div className="grid grid-cols-3 gap-4">
                   <Field>
                     <FieldLabel>Date of Birth</FieldLabel>
-                    <Select value={form.dobDay} onValueChange={(v) => setForm((p) => ({ ...p, dobDay: v }))}>
+                    <Select
+                      value={form.dobDay}
+                      onValueChange={(v) =>
+                        setForm((p) => ({ ...p, dobDay: v }))
+                      }
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="DD" />
                       </SelectTrigger>
@@ -187,7 +196,12 @@ const Register = () => {
 
                   <Field>
                     <FieldLabel>Month of Birth</FieldLabel>
-                    <Select value={form.dobMonth} onValueChange={(v) => setForm((p) => ({ ...p, dobMonth: v }))}>
+                    <Select
+                      value={form.dobMonth}
+                      onValueChange={(v) =>
+                        setForm((p) => ({ ...p, dobMonth: v }))
+                      }
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="MM" />
                       </SelectTrigger>
@@ -203,7 +217,12 @@ const Register = () => {
 
                   <Field>
                     <FieldLabel>Year</FieldLabel>
-                    <Select value={form.dobYear} onValueChange={(v) => setForm((p) => ({ ...p, dobYear: v }))}>
+                    <Select
+                      value={form.dobYear}
+                      onValueChange={(v) =>
+                        setForm((p) => ({ ...p, dobYear: v }))
+                      }
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="YYYY" />
                       </SelectTrigger>
@@ -223,7 +242,6 @@ const Register = () => {
                   <Input
                     id="userphone"
                     placeholder="Enter your phone number"
-                    required
                     type="tel"
                     value={form.phone}
                     onChange={setField("phone")}
@@ -233,8 +251,8 @@ const Register = () => {
             </FieldSet>
 
             <Field orientation="horizontal">
-              <Button type="submit" className="w-20 h-9">
-                Submit
+              <Button type="submit" className="w-28 h-9" disabled={loading}>
+                {loading ? "Submitting..." : "Submit"}
               </Button>
 
               <Link to="/Login">
@@ -247,7 +265,7 @@ const Register = () => {
         </form>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Register
+export default Register;

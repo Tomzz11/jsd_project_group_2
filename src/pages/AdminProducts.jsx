@@ -4,8 +4,6 @@ import axios from "axios";
 
 export const AdminProducts = () => {
   const navigate = useNavigate();
-
-  // ✅ กำหนด Category (พิมพ์เล็กทั้งหมด)
   const CATEGORIES = ["cat", "dog", "bird", "fish"];
 
   const [data, setData] = useState([]); 
@@ -16,7 +14,8 @@ export const AdminProducts = () => {
     category: "", 
     price: "", 
     image: "",
-    description: ""
+    description: "",
+    stock: 0 // ✅ เปลี่ยนจาก countInStock เป็น stock
   });
   const [currentPage, setCurrentPage] = useState(1);
   const maxRows = 6;
@@ -66,7 +65,7 @@ export const AdminProducts = () => {
       image: data[actualIndex].image || "",
       description: data[actualIndex].description || "",
       brand: data[actualIndex].brand || "General",
-      countInStock: data[actualIndex].countInStock || 10
+      stock: data[actualIndex].stock || data[actualIndex].countInStock || 0 // ✅ รองรับทั้ง stock และ countInStock
     });
   };
 
@@ -81,12 +80,12 @@ export const AdminProducts = () => {
 
       const dataToUpdate = {
         name: editForm.name,
-        category: editForm.category, // ✅ ส่งเป็นพิมพ์เล็ก
+        category: editForm.category,
         price: Number(editForm.price),
         image: editForm.image,
         brand: editForm.brand || "General",
         description: editForm.description || "No description",
-        countInStock: editForm.countInStock || 10
+        stock: Number(editForm.stock) // ✅ เปลี่ยนจาก countInStock เป็น stock
       };
 
       await axios.put(`http://localhost:5000/api/products/${productId}`, dataToUpdate, {
@@ -147,7 +146,7 @@ export const AdminProducts = () => {
       </aside>
 
       <main className="flex-1 p-4">
-        <section className="bg-[#dfe0df] p-6 rounded-xl shadow-sm border border-neutral-950">
+        <section className=" flex flex-col h-[780px] bg-[#dfe0df]  p-6 rounded-xl shadow-sm border border-neutral-950">
           <h3 className="text-xl font-bold mb-4 text-black text-gray-800">Products Management</h3>
           
           <input
@@ -161,43 +160,57 @@ export const AdminProducts = () => {
             }}
           />
 
-          <div className="overflow-x-auto rounded-lg border border-gray-100 bg-white">
-            <table className="w-full min-w-[600px] text-left">
+          <div className="flex-1 overflow-x-auto rounded-lg border border-gray-100 bg-white">
+            <table className="w-full min-w-[700px] text-left">
               <thead className="bg-amber-300 border-b">
                 <tr>
                   <th className="p-4 text-black">Image</th>
                   <th className="p-4 text-black">Name</th>
                   <th className="p-4 text-black">Category</th>
                   <th className="p-4 text-black">Price</th>
+                  <th className="p-4 text-black">Stock</th>
                   <th className="p-4 text-black">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 text-black">
                 {currentTableData.length > 0 ? (
-                  currentTableData.map((item, i) => (
-                    <tr key={item._id || i} className="hover:bg-gray-200 even:bg-gray-50">
-                      <td className="p-4">
-                        {item.image && item.image !== "no pic" ? (
-                          <img src={item.image} className="w-12 h-12 object-cover rounded shadow-sm" alt="product" />
-                        ) : "—"}
-                      </td>
-                      <td className="p-4 font-medium">{item.name}</td>
-                      <td className="p-4">{item.category}</td>
-                      <td className="p-4 font-bold text-orange-600">{item.price}</td>
-                      <td className="p-4 flex gap-2">
-                        <button onClick={() => openEdit(i)} className="px-3 py-1 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600">Edit</button>
-                        <button onClick={() => deleteProduct(i)} className="px-3 py-1 bg-red-500 text-white rounded-md text-sm hover:bg-red-600">Del</button>
-                      </td>
-                    </tr>
-                  ))
+                  currentTableData.map((item, i) => {
+                    // ✅ รองรับทั้ง stock และ countInStock
+                    const stockValue = item.stock !== undefined ? item.stock : item.countInStock || 0;
+                    
+                    return (
+                      <tr key={item._id || i} className="hover:bg-gray-200 even:bg-gray-50">
+                        <td className="p-4">
+                          {item.image && item.image !== "no pic" ? (
+                            <img src={item.image} className="w-12 h-12 object-cover rounded shadow-sm" alt="product" />
+                          ) : "—"}
+                        </td>
+                        <td className="p-4 font-medium">{item.name}</td>
+                        <td className="p-4">{item.category}</td>
+                        <td className="p-4 font-bold text-orange-600">${item.price}</td>
+                        <td className="p-4">
+                          <span className={`px-2 py-1 rounded-full text-sm font-semibold ${
+                            stockValue === 0 ? 'bg-red-100 text-red-700' :
+                            stockValue < 10 ? 'bg-yellow-100 text-yellow-700' :
+                            'bg-green-100 text-green-700'
+                          }`}>
+                            {stockValue}
+                          </span>
+                        </td>
+                        <td className="p-4 flex gap-2">
+                          <button onClick={() => openEdit(i)} className="px-3 py-1 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600">Edit</button>
+                          <button onClick={() => deleteProduct(i)} className="px-3 py-1 bg-red-500 text-white rounded-md text-sm hover:bg-red-600">Del</button>
+                        </td>
+                      </tr>
+                    );
+                  })
                 ) : (
-                  <tr><td colSpan="5" className="p-10 text-center font-bold text-gray-500">ไม่พบสินค้า</td></tr>
+                  <tr><td colSpan="6" className="p-10 text-center font-bold text-gray-500">ไม่พบสินค้า</td></tr>
                 )}
               </tbody>
             </table>
           </div>
 
-          {/* Pagination */}
           <div className="flex justify-center gap-2 mt-6">
             <button disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)} className="px-3 py-1 bg-gray-400 rounded disabled:opacity-50 text-white text-sm">Prev</button>
             {[...Array(totalPages)].map((_, i) => (
@@ -208,7 +221,6 @@ export const AdminProducts = () => {
         </section>
       </main>
 
-      {/* Modal Edit */}
       {editIndex !== null && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-md text-black max-h-[90vh] overflow-y-auto">
@@ -223,7 +235,6 @@ export const AdminProducts = () => {
                 />
               </div>
 
-              {/* ✅ เปลี่ยนเป็น select dropdown (พิมพ์เล็ก) */}
               <div>
                 <label className="text-xs font-bold text-gray-500 block mb-1">หมวดหมู่</label>
                 <select 
@@ -251,14 +262,29 @@ export const AdminProducts = () => {
                 />
               </div>
 
-              <div>
-                <label className="text-xs font-bold text-gray-500 block mb-1">ราคา</label>
-                <input 
-                  className="border p-2 w-full rounded focus:ring-2 focus:ring-blue-400 outline-none" 
-                  type="number" 
-                  value={editForm.price} 
-                  onChange={(e) => setEditForm({ ...editForm, price: e.target.value })} 
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-gray-500 block mb-1">ราคา ($)</label>
+                  <input 
+                    className="border p-2 w-full rounded focus:ring-2 focus:ring-blue-400 outline-none" 
+                    type="number" 
+                    min="0"
+                    step="0.01"
+                    value={editForm.price} 
+                    onChange={(e) => setEditForm({ ...editForm, price: e.target.value })} 
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-gray-500 block mb-1">จำนวนสต๊อก</label>
+                  <input 
+                    className="border p-2 w-full rounded focus:ring-2 focus:ring-blue-400 outline-none" 
+                    type="number" 
+                    min="0"
+                    value={editForm.stock} // ✅ เปลี่ยนเป็น stock
+                    onChange={(e) => setEditForm({ ...editForm, stock: e.target.value })} // ✅ เปลี่ยนเป็น stock
+                  />
+                </div>
               </div>
             </div>
             <div className="flex justify-end gap-2 mt-6 border-t pt-4">
