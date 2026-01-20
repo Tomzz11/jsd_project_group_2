@@ -4,8 +4,6 @@ import axios from "axios";
 
 export default function AddProduct() {
   const navigate = useNavigate();
-
-  // ✅ กำหนด Category (พิมพ์เล็กทั้งหมด)
   const CATEGORIES = ["cat", "dog", "bird", "fish"];
 
   useEffect(() => {
@@ -29,6 +27,7 @@ export default function AddProduct() {
     price: "",
     image: null,
     description: "",
+    stock: 10, // ✅ เปลี่ยนจาก countInStock เป็น stock
   });
 
   const [isUploading, setIsUploading] = useState(false);
@@ -51,6 +50,7 @@ export default function AddProduct() {
       category: form.category,
       price: form.price,
       description: form.description,
+      stock: form.stock, // ✅ เปลี่ยนเป็น stock
     };
     localStorage.setItem("productDraft", JSON.stringify(draftData));
     alert("บันทึกร่างเรียบร้อย");
@@ -62,7 +62,8 @@ export default function AddProduct() {
       category: "", 
       price: "", 
       image: null,
-      description: ""
+      description: "",
+      stock: 10, // ✅ เปลี่ยนเป็น stock
     });
   };
 
@@ -81,7 +82,6 @@ export default function AddProduct() {
         return;
       }
 
-      // ✅ Step 1: อัพโหลดรูปไป Cloudinary ก่อน (ถ้ามีรูป)
       let imageUrl = "/images/sample.jpg";
       
       if (form.image && form.image.startsWith("data:")) {
@@ -113,7 +113,6 @@ export default function AddProduct() {
         }
       }
 
-      // ✅ Step 2: สร้างสินค้าพร้อม URL รูปจาก Cloudinary
       const config = {
         headers: {
           "Content-Type": "application/json",
@@ -123,12 +122,12 @@ export default function AddProduct() {
 
       const payload = {
         name: form.name,
-        category: form.category, // ✅ ส่งเป็นพิมพ์เล็ก
+        category: form.category,
         price: Number(form.price),
         image: imageUrl,
         brand: "MaiPaws",
         description: form.description || "No description provided",
-        countInStock: 10,
+        stock: Number(form.stock), // ✅ เปลี่ยนจาก countInStock เป็น stock
       };
 
       await axios.post("http://localhost:5000/api/products", payload, config);
@@ -225,7 +224,6 @@ export default function AddProduct() {
                 />
               </div>
 
-              {/* ✅ เปลี่ยนเป็น select dropdown (พิมพ์เล็ก) */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Category
@@ -260,19 +258,39 @@ export default function AddProduct() {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Price ($)
-                </label>
-                <input
-                  type="text"
-                  placeholder="0.00"
-                  required
-                  value={form.price}
-                  onChange={(e) => setForm({ ...form, price: e.target.value })}
-                  className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-200 focus:border-purple-400 outline-none transition-all bg-white"
-                  disabled={isUploading}
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Price ($)
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="0.00"
+                    required
+                    min="0"
+                    step="0.01"
+                    value={form.price}
+                    onChange={(e) => setForm({ ...form, price: e.target.value })}
+                    className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-200 focus:border-purple-400 outline-none transition-all bg-white"
+                    disabled={isUploading}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Stock Quantity
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="0"
+                    required
+                    min="0"
+                    value={form.stock} // ✅ เปลี่ยนเป็น stock
+                    onChange={(e) => setForm({ ...form, stock: e.target.value })} // ✅ เปลี่ยนเป็น stock
+                    className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-200 focus:border-purple-400 outline-none transition-all bg-white"
+                    disabled={isUploading}
+                  />
+                </div>
               </div>
             </div>
 
