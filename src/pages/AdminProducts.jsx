@@ -15,7 +15,7 @@ export const AdminProducts = () => {
     price: "", 
     image: "",
     description: "",
-    stock: 0 // ✅ เปลี่ยนจาก countInStock เป็น stock
+    stock: 0 
   });
   const [currentPage, setCurrentPage] = useState(1);
   const maxRows = 6;
@@ -65,7 +65,7 @@ export const AdminProducts = () => {
       image: data[actualIndex].image || "",
       description: data[actualIndex].description || "",
       brand: data[actualIndex].brand || "General",
-      stock: data[actualIndex].stock || data[actualIndex].countInStock || 0 // ✅ รองรับทั้ง stock และ countInStock
+      stock: data[actualIndex].stock || data[actualIndex].countInStock || 0 
     });
   };
 
@@ -85,7 +85,7 @@ export const AdminProducts = () => {
         image: editForm.image,
         brand: editForm.brand || "General",
         description: editForm.description || "No description",
-        stock: Number(editForm.stock) // ✅ เปลี่ยนจาก countInStock เป็น stock
+        stock: Number(editForm.stock) 
       };
 
       await axios.put(`http://localhost:5000/api/products/${productId}`, dataToUpdate, {
@@ -147,7 +147,7 @@ export const AdminProducts = () => {
 
       <main className="flex-1 p-4">
         <section className=" flex flex-col h-[780px] bg-[#dfe0df]  p-6 rounded-xl shadow-sm border border-neutral-950">
-          <h3 className="text-xl font-bold mb-4 text-black text-gray-800">Products Management</h3>
+          <h3 className="text-xl font-bold mb-4 text-gray-800">Products Management</h3>
           
           <input
             type="text"
@@ -175,7 +175,6 @@ export const AdminProducts = () => {
               <tbody className="divide-y divide-gray-100 text-black">
                 {currentTableData.length > 0 ? (
                   currentTableData.map((item, i) => {
-                    // ✅ รองรับทั้ง stock และ countInStock
                     const stockValue = item.stock !== undefined ? item.stock : item.countInStock || 0;
                     
                     return (
@@ -187,14 +186,14 @@ export const AdminProducts = () => {
                         </td>
                         <td className="p-4 font-medium">{item.name}</td>
                         <td className="p-4">{item.category}</td>
-                        <td className="p-4 font-bold text-orange-600">${item.price}</td>
+                        <td className="p-4 font-bold text-orange-600">฿{Number(item.price).toLocaleString()}</td>
                         <td className="p-4">
                           <span className={`px-2 py-1 rounded-full text-sm font-semibold ${
                             stockValue === 0 ? 'bg-red-100 text-red-700' :
                             stockValue < 10 ? 'bg-yellow-100 text-yellow-700' :
                             'bg-green-100 text-green-700'
                           }`}>
-                            {stockValue}
+                            {Number(stockValue).toLocaleString()}
                           </span>
                         </td>
                         <td className="p-4 flex gap-2">
@@ -264,7 +263,7 @@ export const AdminProducts = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-bold text-gray-500 block mb-1">ราคา ($)</label>
+                  <label className="text-xs font-bold text-gray-500 block mb-1">ราคา (฿)</label>
                   <input 
                     className="border p-2 w-full rounded focus:ring-2 focus:ring-blue-400 outline-none" 
                     type="number" 
@@ -281,8 +280,8 @@ export const AdminProducts = () => {
                     className="border p-2 w-full rounded focus:ring-2 focus:ring-blue-400 outline-none" 
                     type="number" 
                     min="0"
-                    value={editForm.stock} // ✅ เปลี่ยนเป็น stock
-                    onChange={(e) => setEditForm({ ...editForm, stock: e.target.value })} // ✅ เปลี่ยนเป็น stock
+                    value={editForm.stock} 
+                    onChange={(e) => setEditForm({ ...editForm, stock: e.target.value })} 
                   />
                 </div>
               </div>
