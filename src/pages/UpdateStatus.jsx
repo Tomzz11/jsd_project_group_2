@@ -141,7 +141,7 @@ export const UpdateStatus = () => {
                     <td className="p-4 border-b" onClick={(e) => e.stopPropagation()}>
                       <select className="p-1.5 text-xs border rounded-lg font-bold" value={order.status || "pending"} onChange={(e) => updateStatus(order._id, e.target.value)}>
                         <option value="pending">Pending</option>
-                        <option value="paid">paid</option>
+                        <option value="paid">Paid</option>
                         <option value="delivered">Delivered</option>
                         <option value="cancelled">Cancelled</option>
                       </select>
