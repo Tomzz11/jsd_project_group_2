@@ -16,7 +16,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ✅ เพิ่ม isAdmin
+  // เพิ่ม isAdmin
   const isAdmin = user?.role === "admin";
 
   useEffect(() => {
@@ -90,7 +90,7 @@ export const AuthProvider = ({ children }) => {
       value={{
         user,
         loading,
-        isAdmin, // ✅ เพิ่มตรงนี้
+        isAdmin, 
         login,
         logout,
         register,

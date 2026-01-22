@@ -18,7 +18,7 @@ export const CartProvider = ({ children }) => {
   const [cartCount, setCartCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  // ✅ โหลดตะกร้าเมื่อ user เปลี่ยน (Admin ไม่โหลด cart)
+  // โหลดตะกร้าเมื่อ user เปลี่ยน (Admin ไม่โหลด cart)
   useEffect(() => {
     if (user?.role === "admin") {
       setCartItems([]);
@@ -48,7 +48,7 @@ export const CartProvider = ({ children }) => {
     setCartCount(count);
   };
 
-  // ✅ Admin ไม่สามารถเพิ่มสินค้าลงตะกร้า
+  // Admin ไม่สามารถเพิ่มสินค้าลงตะกร้า
   const addToCart = async (product, quantity = 1) => {
     if (user?.role === "admin") {
       return false;
@@ -107,7 +107,7 @@ export const CartProvider = ({ children }) => {
     return cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   };
 
-  // ✅ Sync cart เมื่อ login (สำหรับ user เท่านั้น)
+  // Sync cart เมื่อ login (สำหรับ user เท่านั้น)
   const syncCartOnLogin = async () => {
     if (user?.role === "admin") {
       setCartItems([]);
@@ -126,7 +126,7 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  // ✅ Sync cart เมื่อ logout
+  // Sync cart เมื่อ logout
   const syncCartOnLogout = async () => {
     try {
       await cartUtils.syncCartOnLogout();
