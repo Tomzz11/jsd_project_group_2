@@ -243,9 +243,6 @@ const ProductDetail = () => {
                         <Plus className="h-4 w-4" />
                       </Button>
                     </div>
-                    <span className="text-sm text-gray-600">
-                      {product.stock || 99} available
-                    </span>
                   </div>
                 </div>
 
