@@ -1,13 +1,13 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import { authAPI } from '../services/api';
+
+import { createContext, useContext, useState, useEffect } from "react";
+import { authAPI } from "../services/api";
 
 const AuthContext = createContext();
-
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within AuthProvider");
   }
   return context;
 };
@@ -16,139 +16,90 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ฟังก์ชันดึงข้อมูล user แบบเต็ม
-  const fetchFullUserData = async (token) => {
-    try {
-      const meResponse = await authAPI.getMe();
-      return { ...meResponse.data.data, token };
-    } catch (error) {
-      console.error('Error fetching user data:', error);
-      return null;
-    }
-  };
+  // ✅ เพิ่ม isAdmin
+  const isAdmin = user?.role === "admin";
 
-  // ตรวจสอบ token เมื่อโหลดแอป
   useEffect(() => {
-    const initAuth = async () => {
-      const token = localStorage.getItem('token');
-      const savedUser = localStorage.getItem('user');
-      
-      if (token && savedUser) {
-        try {
-          // Verify token กับ server และดึงข้อมูลเต็ม
-          const response = await authAPI.getMe();
-          const fullUserData = { ...response.data.data, token };
-          setUser(fullUserData);
-          localStorage.setItem('user', JSON.stringify(fullUserData));
-        } catch (error) {
-          // Token ไม่ valid
-          console.error('Auth init error:', error);
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-        }
-      }
-      setLoading(false);
-    };
-
-    initAuth();
+    checkAuth();
   }, []);
 
-  // Register
-  const register = async (name, email, password) => {
+  const checkAuth = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+
     try {
-      const response = await authAPI.register({ name, email, password });
-      const { data } = response.data;
-      
-      // บันทึก token ก่อน
-      localStorage.setItem('token', data.token);
-      
-      // ลองดึงข้อมูล user แบบเต็ม
-      const fullUserData = await fetchFullUserData(data.token);
-      
-      if (fullUserData) {
-        localStorage.setItem('user', JSON.stringify(fullUserData));
-        setUser(fullUserData);
-        return { success: true, data: fullUserData };
+      const response = await authAPI.getMe();
+      if (response.data?.success) {
+        setUser(response.data.data);
       } else {
-        // ถ้าดึงไม่ได้ ใช้ข้อมูลจาก register response แทน
-        const basicUserData = { ...data, createdAt: new Date().toISOString() };
-        localStorage.setItem('user', JSON.stringify(basicUserData));
-        setUser(basicUserData);
-        return { success: true, data: basicUserData };
+        localStorage.removeItem("token");
       }
     } catch (error) {
-      console.error('Register error:', error);
-      return {
-        success: false,
-        message: error.response?.data?.message || 'เกิดข้อผิดพลาดในการสมัครสมาชิก'
-      };
+      console.error("Auth check failed:", error);
+      localStorage.removeItem("token");
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Login
   const login = async (email, password) => {
     try {
       const response = await authAPI.login({ email, password });
-      const { data } = response.data;
-      
-      // บันทึก token ก่อน
-      localStorage.setItem('token', data.token);
-      
-      // ลองดึงข้อมูล user แบบเต็ม
-      const fullUserData = await fetchFullUserData(data.token);
-      
-      if (fullUserData) {
-        localStorage.setItem('user', JSON.stringify(fullUserData));
-        setUser(fullUserData);
-        return { success: true, data: fullUserData };
-      } else {
-        // ถ้าดึงไม่ได้ ใช้ข้อมูลจาก login response แทน
-        localStorage.setItem('user', JSON.stringify(data));
-        setUser(data);
-        return { success: true, data };
+
+      if (response.data?.success) {
+        const { token, ...userData } = response.data.data;
+        localStorage.setItem("token", token);
+        setUser(userData);
+        return { success: true, data: userData };
       }
-    } catch (error) {
-      console.error('Login error:', error);
+
       return {
         success: false,
-        message: error.response?.data?.message || 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ'
+        message: response.data?.message || "เข้าสู่ระบบไม่สำเร็จ",
+      };
+    } catch (error) {
+      console.error("Login error:", error);
+      return {
+        success: false,
+        message:
+          error.response?.data?.message || "เกิดข้อผิดพลาดในการเข้าสู่ระบบ",
       };
     }
   };
 
-  // Logout
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    localStorage.removeItem("token");
     setUser(null);
   };
 
-  // Check if user is admin
-  const isAdmin = user?.role === 'admin';
-
-  const value = {
-    user,
-    loading,
-    login,
-    register,
-    logout,
-    isAdmin
+  const register = async (userData) => {
+    try {
+      const response = await authAPI.register(userData);
+      return response.data;
+    } catch (error) {
+      console.error("Register error:", error);
+      throw error;
+    }
   };
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        isAdmin, // ✅ เพิ่มตรงนี้
+        login,
+        logout,
+        register,
+        checkAuth,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
 };
-
-
-export default AuthContext;
-
-
-
-
-
-
 
 

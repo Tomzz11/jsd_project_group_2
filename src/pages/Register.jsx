@@ -1,5 +1,4 @@
 import React, { useMemo, useState } from "react";
-
 import { Button } from "@/components/ui/button";
 import {
   Field,
@@ -18,12 +17,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Link, useNavigate } from "react-router-dom";
+import { authAPI } from "@/services/api"; //  ใช้ authAPI
+import { toast } from "sonner"; //  เพิ่ม toast
 
-import axios from "axios";
-import { config } from "../config/config.js";
 
 const Register = () => {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
   const [form, setForm] = useState({
     firstName: "",
@@ -37,7 +37,6 @@ const Register = () => {
   });
 
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
 
   const years = useMemo(() => {
     const currentYear = new Date().getFullYear();
@@ -59,58 +58,62 @@ const Register = () => {
     setForm((prev) => ({ ...prev, [key]: e.target.value }));
   };
 
+  // handleSubmit  (มี try-catch ครบ)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
-    // validation เบื้องต้น
-    if (!form.firstName.trim() || !form.lastName.trim())
-      return setError("Please enter name and lastname");
-    if (!form.email.trim()) return setError("Please enter email");
-    if (!form.password || form.password.length < 4)
-      return setError("Password must be at least 4 characters");
-    if (!form.phone.trim()) return setError("Please enter phone");
-    if (!form.dobDay || !form.dobMonth || !form.dobYear)
-      return setError("Please select date of birth");
+    // validation 
+  if (!form.firstName.trim() || !form.lastName.trim()) {
+    return setError("Please enter name and lastname");
+  }
+  if (!form.email.trim()) {
+    return setError("Please enter email");
+  }
+  if (!form.password || form.password.length < 6) {
+    return setError("Password must be at least 6 characters");
+  }
+  if (!form.phone.trim()) {
+    return setError("Please enter phone");
+  }
+  if (!form.dobDay || !form.dobMonth || !form.dobYear) {
+    return setError("Please select date of birth");
+  }
 
-    // (optional) กันวันที่ไม่จริง เช่น 31/02
+  // (optional) กันวันที่ไม่จริง เช่น 31/02
     const isoBirthday = `${form.dobYear}-${form.dobMonth}-${form.dobDay}`;
     const d = new Date(isoBirthday);
     if (Number.isNaN(d.getTime())) return setError("Invalid date of birth");
 
-    const userData = {
-      name: form.firstName.trim(),
-      lastName: form.lastName.trim(),
-      email: form.email.trim().toLowerCase(),
-      password: form.password,
-      phone: form.phone.trim(),
-      birthday: isoBirthday, // ✅ แก้ชื่อ key ให้ตรง backend
-      avatarUrl: "/avatars/default-user.png",
-    };
-
     try {
       setLoading(true);
 
-      const response = await axios.post(
-        `${config.apiUrl}/api/auth/register`,
-        userData
-      );
+      const userData = {
+        name: form.firstName.trim(),
+        lastName: form.lastName.trim(),
+        email: form.email.trim().toLowerCase(),
+        password: form.password,
+        phone: form.phone.trim(),
+        birthday: isoBirthday,
+        avatarUrl: "/avatars/default-user.png",
+      };
 
-      // ✅ backend ส่ง 201 ตอนสมัครสำเร็จ
-      if (response.status === 201 && response.data?.success) {
-        navigate("/Login", { replace: true });
-        return;
+      const response = await authAPI.register(userData);
+      if (response.data?.success) {
+        // Toast แจ้งเตือนสมัครสำเร็จ
+        toast.success("สมัครสมาชิกสำเร็จ! 🎉", {
+          description: "กรุณาเข้าสู่ระบบเพื่อใช้งาน",
+        });
+        navigate("/login", { replace: true });
       }
-
-      // เผื่อกรณีตอบกลับมาแต่ success=false
-      setError(response.data?.message || "Register failed");
-    } catch (err) {
-      // ✅ โชว์ข้อความจริงจาก backend (เช่น อีเมลซ้ำ/เบอร์ซ้ำ)
-      const msg =
-        err?.response?.data?.message ||
-        err?.message ||
-        "Register failed";
-      setError(msg);
+    } catch (error) {
+      console.error("Register error:", error);
+      const errorMessage =
+        error.response?.data?.message || "เกิดข้อผิดพลาดในการสมัครสมาชิก";
+      setError(errorMessage);
+      toast.error("สมัครสมาชิกไม่สำเร็จ", {
+        description: errorMessage,
+      });
     } finally {
       setLoading(false);
     }
@@ -157,6 +160,7 @@ const Register = () => {
                     type="email"
                     value={form.email}
                     onChange={setField("email")}
+                    disabled={loading}
                   />
 
                   <FieldLabel className="mt-3">Password</FieldLabel>
@@ -168,7 +172,7 @@ const Register = () => {
                     onChange={setField("password")}
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    Password อย่างน้อย 4 ตัว
+                    รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร
                   </p>
                 </Field>
 

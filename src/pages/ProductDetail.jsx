@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,17 +17,20 @@ import {
 } from "lucide-react";
 import { productAPI } from "../services/api";
 import { useCart } from "../context/CartContext";
+import { useAuth } from "../context/AuthContext";
 import { toast } from "sonner";
 
 const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
   const { addToCart } = useCart();
+  const { user, isAdmin } = useAuth();
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -50,16 +53,32 @@ const ProductDetail = () => {
     );
   };
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!product) return;
 
-    const success = addToCart(product, quantity);
+    // ✅ เช็คว่า login หรือยัง
+    if (!user) {
+      toast.error("กรุณาเข้าสู่ระบบ", {
+        description: "คุณต้องเข้าสู่ระบบก่อนเพิ่มสินค้า",
+      });
+      navigate("/login", { state: { from: location } });
+      return;
+    }
+
+    // ✅ Admin ไม่สามารถเพิ่มสินค้า
+    if (isAdmin) {
+      toast.error("Admin ไม่สามารถเพิ่มสินค้าลงตะกร้าได้");
+      return;
+    }
+
+    const success = await addToCart(product, quantity);
     if (success) {
       toast.success(`เพิ่ม ${product.name} (${quantity} ชิ้น) ลงตะกร้าแล้ว!`);
     } else {
       toast.error("ไม่สามารถเพิ่มสินค้าได้");
     }
   };
+
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -77,7 +96,6 @@ const ProductDetail = () => {
     );
   }
 
-  // Mock images array (replace with product.images when available)
   const images = product.images || [
     product.image,
     product.image,
@@ -85,7 +103,7 @@ const ProductDetail = () => {
   ];
 
   return (
-    <div className="min-h-screen  from-orange-50 via-amber-50 to-yellow-50">
+    <div className="min-h-screen from-orange-50 via-amber-50 to-yellow-50">
       <div className="container mx-auto px-4 py-8">
         {/* Back Button */}
         <Button
@@ -191,60 +209,83 @@ const ProductDetail = () => {
               </p>
             </div>
 
-            {/* Quantity Selector */}
-            <div className="space-y-3">
-              <label className="text-sm font-medium">Quantity</label>
-              <div className="flex items-center gap-4">
-                <div className="flex items-center rounded-lg border">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleQuantityChange(-1)}
-                    disabled={quantity <= 1}
-                  >
-                    <Minus className="h-4 w-4" />
-                  </Button>
-                  <span className="w-12 text-center font-semibold">
-                    {quantity}
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleQuantityChange(1)}
-                    disabled={quantity >= (product.stock || 99)}
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
-                <span className="text-sm text-gray-600">
-                  {product.stock || 99} available
-                </span>
-              </div>
+            {/* Stock Info */}
+            <div className="text-sm text-gray-600">
+              <span className="font-semibold">สินค้าคงเหลือ:</span>{" "}
+              {product.stock || 0} ชิ้น
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex gap-3">
-              <Button
-                size="lg"
-                className="flex-1 gap-2"
-                onClick={handleAddToCart}
-                disabled={!product.stock}
-              >
-                <ShoppingCart className="h-5 w-5" />
-                Add to Cart
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                onClick={() => setIsFavorite(!isFavorite)}
-              >
-                <Heart
-                  className={`h-5 w-5 ${
-                    isFavorite ? "fill-red-500 text-red-500" : ""
-                  }`}
-                />
-              </Button>
-            </div>
+            {/* ✅ ซ่อน Quantity Selector และ Add to Cart สำหรับ Admin */}
+            {!isAdmin && (
+              <>
+                {/* Quantity Selector */}
+                <div className="space-y-3">
+                  <label className="text-sm font-medium">Quantity</label>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center rounded-lg border">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleQuantityChange(-1)}
+                        disabled={quantity <= 1}
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                      <span className="w-12 text-center font-semibold">
+                        {quantity}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleQuantityChange(1)}
+                        disabled={quantity >= (product.stock || 99)}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <span className="text-sm text-gray-600">
+                      {product.stock || 99} available
+                    </span>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-3">
+                  <Button
+                    size="lg"
+                    className="flex-1 gap-2"
+                    onClick={handleAddToCart}
+                    disabled={!product.stock}
+                  >
+                    <ShoppingCart className="h-5 w-5" />
+                    Add to Cart
+                  </Button>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    onClick={() => setIsFavorite(!isFavorite)}
+                  >
+                    <Heart
+                      className={`h-5 w-5 ${
+                        isFavorite ? "fill-red-500 text-red-500" : ""
+                      }`}
+                    />
+                  </Button>
+                </div>
+              </>
+            )}
+
+            {/* ✅ แสดงข้อความสำหรับ Admin */}
+            {isAdmin && (
+              <div className="rounded-lg bg-yellow-50 border border-yellow-200 p-4">
+                <p className="text-yellow-800 font-medium">
+                  👑 คุณกำลังดูในฐานะ Admin
+                </p>
+                <p className="text-yellow-600 text-sm mt-1">
+                  Admin ไม่สามารถเพิ่มสินค้าลงตะกร้าได้
+                </p>
+              </div>
+            )}
 
             {/* Features */}
             <div className="space-y-3 rounded-lg bg-white p-4">
@@ -305,8 +346,8 @@ const ProductDetail = () => {
                       <dd className="mt-1">{product.category}</dd>
                     </div>
                     <div>
-                      <dt className="font-semibold text-gray-600">Weight</dt>
-                      <dd className="mt-1">{product.weight || "500g"}</dd>
+                      <dt className="font-semibold text-gray-600">Stock</dt>
+                      <dd className="mt-1">{product.stock || 0} ชิ้น</dd>
                     </div>
                     <div>
                       <dt className="font-semibold text-gray-600">SKU</dt>
@@ -358,3 +399,6 @@ const ProductDetail = () => {
 };
 
 export default ProductDetail;
+
+
+

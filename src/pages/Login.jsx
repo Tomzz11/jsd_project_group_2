@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
 import { useCart } from "../context/CartContext"
+import { toast } from "sonner"
 
 const Login = () => {
   const [email, setEmail] = useState("")
@@ -22,8 +23,8 @@ const Login = () => {
 
   const navigate = useNavigate()
   const location = useLocation()
-  const { login } = useAuth() // ✅ ใช้ login จาก AuthContext
-  const { syncCartOnLogin } = useCart()
+  const { login } = useAuth() //  ใช้ login จาก AuthContext
+  const { syncCartOnLogin, clearCart } = useCart()
   
   const from = location.state?.from?.pathname || "/"
 
@@ -33,63 +34,56 @@ const Login = () => {
     setLoading(true)
 
     try {
-      // ✅ ใช้ login function จาก AuthContext
+      // ใช้ login function จาก AuthContext
       const result = await login(email, password)
 
       if (result.success) {
-        // ✅ Sync cart จาก localStorage ไป Database
-        try {
-          await syncCartOnLogin()
-          console.log("Cart synced successfully")
+        const userData = result.data;
+
+        // Toast แจ้งเตือน Login สำเร็จ
+        toast.success(`ยินดีต้อนรับ ${userData.name}! 🎉`, {
+          description:
+            userData.role === "admin"
+              ? "คุณเข้าสู่ระบบในฐานะ Admin"
+              : "เข้าสู่ระบบสำเร็จ",
+        });
+
+        // ถ้าเป็น Admin ไม่ต้อง sync cart และไปหน้า admin
+        if (userData.role === "admin") {
+          await clearCart();
+          navigate("/admin/products", { replace: true });
+        } else {    
+          //Sync cart สำหรับ User เท่านั้น      
+          try {
+            await syncCartOnLogin()
         } catch (cartError) {
-          console.error("Cart sync error:", cartError)
-          // ไม่ให้ cart sync error ขัดขวาง login
+            console.error("Cart sync error:", cartError)
         }
-
-        console.log("Login successful")
-
         // Navigate to destination
-        navigate(from, { replace: true })
+            navigate(from, { replace: true })
+        }
       } else {
-        setError(result.message || "เข้าสู่ระบบไม่สำเร็จ")
+        setError(result.message || "เข้าสู่ระบบไม่สำเร็จ");
+        toast.error("เข้าสู่ระบบไม่สำเร็จ", {
+          description: result.message,
+        });
       }
     } catch (error) {
       console.error("Login error:", error)
-      setError("เกิดข้อผิดพลาดในการเข้าสู่ระบบ กรุณาลองใหม่อีกครั้ง")
+      setError("เกิดข้อผิดพลาดในการเข้าสู่ระบบ กรุณาลองใหม่อีกครั้ง");
+      toast.error("เกิดข้อผิดพลาด", {
+        description: "กรุณาลองใหม่อีกครั้ง",
+      });
     } finally {
       setLoading(false)
     }
-  }
+  };
 
   return (
     <div
       className="absolute inset-0 z-0 flex min-h-screen items-center justify-center gap-5 bg-center p-4"
       style={{ backgroundImage: "url('/ryan-walton-AbNO2iejoXA-unsplash.jpg')" }}
     >
-      {/* Info Card */}
-      <Card className="w-80">
-        <CardContent></CardContent>
-        <CardHeader>
-          <CardTitle>Email สำหรับเข้าสู่ระบบ</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2 text-sm">
-            <div>
-              <p className="font-bold">For User</p>
-              <p>Email: user@maipaws.com</p>
-              <p>Password: 123456</p>
-            </div>
-            <div className="mt-3">
-              <p className="font-bold">For Admin</p>
-              <p>Email: admin@maipaws.com</p>
-              <p>Password: 123456</p>
-            </div>
-          </div>
-          <CardDescription className="mt-4 text-red-500">
-            สามารถ sign up ใหม่โดยกำหนด email และ password เพื่อเข้าสู่ระบบทดสอบได้
-          </CardDescription>
-        </CardContent>
-      </Card>
 
       {/* Login Form Card */}
       <Card className="h-[480px] w-[490px]">
@@ -168,4 +162,5 @@ const Login = () => {
   )
 }
 
-export default Login
+export default Login;
+

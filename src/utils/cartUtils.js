@@ -1,13 +1,12 @@
-// utils/cartUtils.js
-import { cartAPI } from "../services/api"; // ปรับ path ให้ตรงโปรเจกต์อัส
+import { cartAPI } from "../services/api";
 
 const LOCAL_KEY = "maipaws_cart";
 
 const getToken = () => localStorage.getItem("token");
 const isAuthenticated = () => !!getToken();
 
-// รองรับ product เป็น object/string และ item เป็นหลายรูปแบบ
-const getProductId = (x) => x?.product?._id || x?.productId || x?.product || x?._id;
+const getProductId = (x) =>
+  x?.product?._id || x?.productId || x?.product || x?._id;
 
 // ----------------------
 // LocalStorage
@@ -32,6 +31,11 @@ const saveLocalCart = (items) => {
   }
 };
 
+// ✅ ล้าง localStorage cart
+export const clearLocalCart = () => {
+  localStorage.removeItem(LOCAL_KEY);
+};
+
 // ----------------------
 // DB
 // ----------------------
@@ -42,7 +46,6 @@ const getDbCart = async () => {
     if (!res.data?.success) return [];
 
     const items = res.data.data?.items || [];
-    // normalize ให้เป็น format เดียวกัน: productId เป็นตัวเดียว
     return items.map((item) => ({
       productId: item.product?._id,
       name: item.product?.name,
@@ -65,12 +68,9 @@ const upsertDbCart = async (items) => {
       quantity: item.quantity,
     }));
 
-    // ใช้ PUT เป็นหลัก (upsert)
     const res = await cartAPI.upsert(formattedItems);
     return !!res.data?.success;
   } catch (error) {
-    // ถ้า backend ของอัสบังคับให้ POST ตอนยังไม่มี cart
-    // ค่อย fallback ไป create ได้
     if (error.response?.status === 400) {
       try {
         const formattedItems = items.map((item) => ({
@@ -105,7 +105,9 @@ export const addToCart = async (product, quantity = 1) => {
   const cartItems = isAuthenticated() ? await getDbCart() : getLocalCart();
   const productId = getProductId(product);
 
-  const existingIndex = cartItems.findIndex((i) => (i.productId || getProductId(i)) === productId);
+  const existingIndex = cartItems.findIndex(
+    (i) => (i.productId || getProductId(i)) === productId
+  );
 
   if (existingIndex !== -1) {
     cartItems[existingIndex].quantity += quantity;
@@ -126,7 +128,9 @@ export const addToCart = async (product, quantity = 1) => {
 
 export const removeFromCart = async (productId) => {
   const cartItems = isAuthenticated() ? await getDbCart() : getLocalCart();
-  const updatedItems = cartItems.filter((i) => (i.productId || getProductId(i)) !== productId);
+  const updatedItems = cartItems.filter(
+    (i) => (i.productId || getProductId(i)) !== productId
+  );
 
   await saveCartItems(updatedItems);
   return updatedItems;
@@ -154,30 +158,50 @@ export const clearCart = async () => {
 };
 
 // ----------------------
-// Sync
+// Sync (แก้ไขปัญหา x2)
 // ----------------------
 export const syncCartOnLogin = async () => {
   const localCart = getLocalCart();
 
-  const dbCart = await getDbCart();
-  if (localCart.length === 0) return dbCart;
+  // ✅ ล้าง localStorage ทันทีเพื่อป้องกัน sync ซ้ำ
+  clearLocalCart();
 
+  // ถ้าไม่มีสินค้าใน localStorage ให้ดึงจาก DB
+  if (localCart.length === 0) {
+    return await getDbCart();
+  }
+
+  // ดึง cart จาก DB
+  const dbCart = await getDbCart();
+
+  // ✅ Merge โดยไม่ให้ซ้ำ
   const merged = [...dbCart];
 
   for (const localItem of localCart) {
     const pid = localItem.productId || getProductId(localItem);
-    const idx = merged.findIndex((d) => (d.productId || getProductId(d)) === pid);
+    const existingIndex = merged.findIndex(
+      (d) => (d.productId || getProductId(d)) === pid
+    );
 
-    if (idx !== -1) merged[idx].quantity += localItem.quantity;
-    else merged.push({ ...localItem, productId: pid });
+    if (existingIndex !== -1) {
+      // ✅ ไม่บวกเพิ่ม แต่ใช้ค่า max แทน
+      merged[existingIndex].quantity = Math.max(
+        merged[existingIndex].quantity,
+        localItem.quantity
+      );
+    } else {
+      merged.push({ ...localItem, productId: pid });
+    }
   }
 
+  // บันทึกลง DB
   await upsertDbCart(merged);
-  localStorage.removeItem(LOCAL_KEY);
+
   return merged;
 };
 
 export const syncCartOnLogout = async () => {
-  const dbCart = await getDbCart();
-  if (dbCart.length > 0) saveLocalCart(dbCart);
+  // ✅ ล้าง localStorage เมื่อ logout (ไม่เก็บ cart ของ user คนก่อน)
+  clearLocalCart();
 };
+
