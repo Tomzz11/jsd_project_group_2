@@ -1,123 +1,128 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { productAPI } from "@/services/api"; 
+import { toast } from "sonner"; 
 
 export const AdminProducts = () => {
   const navigate = useNavigate();
-  const CATEGORIES = ["cat", "dog", "bird", "fish"];
+  const CATEGORIES = ["cat", "dog", "bird", "fish", "other"];
 
-  const [data, setData] = useState([]); 
+  const [data, setData] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [editIndex, setEditIndex] = useState(null);
-  const [editForm, setEditForm] = useState({ 
-    name: "", 
-    category: "", 
-    price: "", 
+  const [editForm, setEditForm] = useState({
+    name: "",
+    category: "",
+    price: "",
     image: "",
     description: "",
-    stock: 0 
+    stock: 0,
   });
   const [currentPage, setCurrentPage] = useState(1);
+  const [saving, setSaving] = useState(false);
   const maxRows = 6;
 
+  // ใช้ productAPI 
   const fetchProducts = async () => {
     try {
-      const storedUser = localStorage.getItem("userInfo") || localStorage.getItem("user");
-      const userInfo = storedUser ? JSON.parse(storedUser) : null;
-      const token = userInfo?.token || userInfo?.data?.token || userInfo;
+      const response = await productAPI.getAll();
 
-      const config = { headers: { Authorization: `Bearer ${token}` } };
-      const response = await axios.get("http://localhost:5000/api/products", config);
-      
       let productsArray = [];
-      if (Array.isArray(response.data)) productsArray = response.data;
-      else if (response.data.products) productsArray = response.data.products;
-      else if (response.data.data) productsArray = response.data.data;
-      
+      if (response.data?.data) {
+        productsArray = response.data.data;
+      } else if (Array.isArray(response.data)) {
+        productsArray = response.data;
+      }
+
       setData(productsArray);
     } catch (error) {
       console.error("API Error:", error.message);
+      toast.error("ไม่สามารถโหลดข้อมูลสินค้าได้");
     }
   };
 
   useEffect(() => {
     fetchProducts();
     document.body.style.backgroundColor = "#FFF8EE";
-    return () => { document.body.style.backgroundColor = ""; };
+    return () => {
+      document.body.style.backgroundColor = "";
+    };
   }, []);
 
-  const filteredData = data.filter((item) => 
-    item.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.category?.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredData = data.filter(
+    (item) =>
+      item.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.category?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const totalPages = Math.ceil(filteredData.length / maxRows) || 1;
-  const currentTableData = filteredData.slice((currentPage - 1) * maxRows, (currentPage - 1) * maxRows + maxRows);
+  const currentTableData = filteredData.slice(
+    (currentPage - 1) * maxRows,
+    (currentPage - 1) * maxRows + maxRows
+  );
 
   const openEdit = (indexInCurrentPage) => {
     const itemToEdit = currentTableData[indexInCurrentPage];
-    const actualIndex = data.findIndex(i => i._id === itemToEdit._id);
+    const actualIndex = data.findIndex((i) => i._id === itemToEdit._id);
     setEditIndex(actualIndex);
-    setEditForm({ 
+    setEditForm({
       name: data[actualIndex].name || "",
       category: data[actualIndex].category || "",
       price: data[actualIndex].price || "",
       image: data[actualIndex].image || "",
       description: data[actualIndex].description || "",
       brand: data[actualIndex].brand || "General",
-      stock: data[actualIndex].stock || data[actualIndex].countInStock || 0 
+      stock: data[actualIndex].stock || data[actualIndex].countInStock || 0,
     });
   };
 
   const closeModal = () => setEditIndex(null);
 
+  // ใช้ productAPI แทน axios
   const saveEdit = async () => {
     try {
+      setSaving(true);
       const productId = data[editIndex]._id;
-      const storedUser = localStorage.getItem("userInfo") || localStorage.getItem("user");
-      const userInfo = storedUser ? JSON.parse(storedUser) : null;
-      const token = userInfo?.token || userInfo?.data?.token || userInfo;
 
       const dataToUpdate = {
-        name: editForm.name,
+        name: editForm.name.trim(),
         category: editForm.category,
         price: Number(editForm.price),
         image: editForm.image,
         brand: editForm.brand || "General",
         description: editForm.description || "No description",
-        stock: Number(editForm.stock) 
+        stock: Number(editForm.stock),
       };
 
-      await axios.put(`http://localhost:5000/api/products/${productId}`, dataToUpdate, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await productAPI.update(productId, dataToUpdate);
 
-      alert("แก้ไขข้อมูลสำเร็จ!");
+      toast.success("แก้ไขข้อมูลสำเร็จ!");
       await fetchProducts();
       closeModal();
-    } catch (error) { 
-      console.error("Update fail:", error.response?.data || error.message); 
-      alert("แก้ไขไม่สำเร็จ: " + (error.response?.data?.message || "Internal Error"));
+    } catch (error) {
+      console.error("Update fail:", error.response?.data || error.message);
+      toast.error(
+        "แก้ไขไม่สำเร็จ: " + (error.response?.data?.message || "Internal Error")
+      );
+    } finally {
+      setSaving(false);
     }
   };
 
+  // ใช้ productAPI แทน axios
   const deleteProduct = async (indexInCurrentPage) => {
     const itemToDelete = currentTableData[indexInCurrentPage];
-    if (window.confirm(`คุณแน่ใจหรือไม่ว่าต้องการลบ ${itemToDelete.name}?`)) {
+    if (
+      window.confirm(`คุณแน่ใจหรือไม่ว่าต้องการลบ ${itemToDelete.name}?`)
+    ) {
       try {
-        const storedUser = localStorage.getItem("userInfo") || localStorage.getItem("user");
-        const userInfo = storedUser ? JSON.parse(storedUser) : null;
-        const token = userInfo?.token || userInfo?.data?.token || userInfo;
+        await productAPI.delete(itemToDelete._id);
 
-        await axios.delete(`http://localhost:5000/api/products/${itemToDelete._id}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-
-        alert("ลบสำเร็จ!");
+        toast.success("ลบสำเร็จ!");
         await fetchProducts();
-      } catch (error) { 
-        console.error("Delete fail:", error.response?.data || error.message); 
-        alert("ลบไม่สำเร็จ");
+      } catch (error) {
+        console.error("Delete fail:", error.response?.data || error.message);
+        toast.error("ลบไม่สำเร็จ");
       }
     }
   };
@@ -125,20 +130,31 @@ export const AdminProducts = () => {
   return (
     <div className="flex flex-col md:flex-row p-4 md:p-6 gap-6 min-h-screen">
       <aside className="w-full md:w-52 bg-[#ffeecb] p-3 h-fit mt-16 rounded-xl shadow-md self-start">
-        <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">Products</h2>
+        <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">
+          Products
+        </h2>
         <ul className="space-y-2">
           <li>
-             <button onClick={() => navigate("/admin/products/add")} className="p-2 rounded text-left hover:bg-white/30 w-full hover:text-orange-500 font-semibold">
+            <button
+              onClick={() => navigate("/admin/products/add")}
+              className="p-2 rounded text-left hover:bg-white/30 w-full hover:text-orange-500 font-semibold"
+            >
               Add Products
             </button>
           </li>
           <li>
-            <button onClick={() => navigate("/admin/products")} className="flex gap-3 items-center p-2 rounded bg-sky-400/40 w-full  font-semibold text-indigo-500">
+            <button
+              onClick={() => navigate("/admin/products")}
+              className="flex gap-3 items-center p-2 rounded bg-sky-400/40 w-full font-semibold text-indigo-500"
+            >
               Manage Lists
             </button>
           </li>
           <li>
-            <button onClick={() => navigate("/admin/update/orders")} className="flex gap-3 items-center p-2 rounded hover:bg-white/30 w-full hover:text-red-700 font-semibold">
+            <button
+              onClick={() => navigate("/admin/update/orders")}
+              className="flex gap-3 items-center p-2 rounded hover:bg-white/30 w-full hover:text-red-700 font-semibold"
+            >
               Order Status
             </button>
           </li>
@@ -146,9 +162,11 @@ export const AdminProducts = () => {
       </aside>
 
       <main className="flex-1 p-4">
-        <section className=" flex flex-col h-[780px] bg-[#dfe0df]  p-6 rounded-xl shadow-sm border border-neutral-950">
-          <h3 className="text-xl font-bold mb-4 text-gray-800">Products Management</h3>
-          
+        <section className="flex flex-col h-[780px] bg-[#dfe0df] p-6 rounded-xl shadow-sm border border-neutral-950">
+          <h3 className="text-xl font-bold mb-4 text-gray-800">
+            Products Management
+          </h3>
+
           <input
             type="text"
             placeholder="ค้นหาชื่อสินค้า หรือ หมวดหมู่..."
@@ -175,71 +193,137 @@ export const AdminProducts = () => {
               <tbody className="divide-y divide-gray-100 text-black">
                 {currentTableData.length > 0 ? (
                   currentTableData.map((item, i) => {
-                    const stockValue = item.stock !== undefined ? item.stock : item.countInStock || 0;
-                    
+                    const stockValue =
+                      item.stock !== undefined
+                        ? item.stock
+                        : item.countInStock || 0;
+
                     return (
-                      <tr key={item._id || i} className="hover:bg-gray-200 even:bg-gray-50">
+                      <tr
+                        key={item._id || i}
+                        className="hover:bg-gray-200 even:bg-gray-50"
+                      >
                         <td className="p-4">
                           {item.image && item.image !== "no pic" ? (
-                            <img src={item.image} className="w-12 h-12 object-cover rounded shadow-sm" alt="product" />
-                          ) : "—"}
+                            <img
+                              src={item.image}
+                              className="w-12 h-12 object-cover rounded shadow-sm"
+                              alt="product"
+                            />
+                          ) : (
+                            "—"
+                          )}
                         </td>
                         <td className="p-4 font-medium">{item.name}</td>
                         <td className="p-4">{item.category}</td>
-                        <td className="p-4 font-bold text-orange-600">฿{Number(item.price).toLocaleString()}</td>
+                        <td className="p-4 font-bold text-orange-600">
+                          ฿{Number(item.price).toLocaleString()}
+                        </td>
                         <td className="p-4">
-                          <span className={`px-2 py-1 rounded-full text-sm font-semibold ${
-                            stockValue === 0 ? 'bg-red-100 text-red-700' :
-                            stockValue < 10 ? 'bg-yellow-100 text-yellow-700' :
-                            'bg-green-100 text-green-700'
-                          }`}>
+                          <span
+                            className={`px-2 py-1 rounded-full text-sm font-semibold ${
+                              stockValue === 0
+                                ? "bg-red-100 text-red-700"
+                                : stockValue < 10
+                                ? "bg-yellow-100 text-yellow-700"
+                                : "bg-green-100 text-green-700"
+                            }`}
+                          >
                             {Number(stockValue).toLocaleString()}
                           </span>
                         </td>
                         <td className="p-4 flex gap-2">
-                          <button onClick={() => openEdit(i)} className="px-3 py-1 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600">Edit</button>
-                          <button onClick={() => deleteProduct(i)} className="px-3 py-1 bg-red-500 text-white rounded-md text-sm hover:bg-red-600">Del</button>
+                          <button
+                            onClick={() => openEdit(i)}
+                            className="px-3 py-1 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => deleteProduct(i)}
+                            className="px-3 py-1 bg-red-500 text-white rounded-md text-sm hover:bg-red-600"
+                          >
+                            Del
+                          </button>
                         </td>
                       </tr>
                     );
                   })
                 ) : (
-                  <tr><td colSpan="6" className="p-10 text-center font-bold text-gray-500">ไม่พบสินค้า</td></tr>
+                  <tr>
+                    <td
+                      colSpan="6"
+                      className="p-10 text-center font-bold text-gray-500"
+                    >
+                      ไม่พบสินค้า
+                    </td>
+                  </tr>
                 )}
               </tbody>
             </table>
           </div>
 
           <div className="flex justify-center gap-2 mt-6">
-            <button disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)} className="px-3 py-1 bg-gray-400 rounded disabled:opacity-50 text-white text-sm">Prev</button>
+            <button
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(currentPage - 1)}
+              className="px-3 py-1 bg-gray-400 rounded disabled:opacity-50 text-white text-sm"
+            >
+              Prev
+            </button>
             {[...Array(totalPages)].map((_, i) => (
-              <button key={i} onClick={() => setCurrentPage(i + 1)} className={`px-3 py-1 rounded text-sm ${currentPage === i + 1 ? "bg-purple-600 text-white font-bold" : "bg-gray-400 text-white"}`}>{i + 1}</button>
+              <button
+                key={i}
+                onClick={() => setCurrentPage(i + 1)}
+                className={`px-3 py-1 rounded text-sm ${
+                  currentPage === i + 1
+                    ? "bg-purple-600 text-white font-bold"
+                    : "bg-gray-400 text-white"
+                }`}
+              >
+                {i + 1}
+              </button>
             ))}
-            <button disabled={currentPage >= totalPages} onClick={() => setCurrentPage(currentPage + 1)} className="px-3 py-1 bg-gray-400 rounded disabled:opacity-50 text-white text-sm">Next</button>
+            <button
+              disabled={currentPage >= totalPages}
+              onClick={() => setCurrentPage(currentPage + 1)}
+              className="px-3 py-1 bg-gray-400 rounded disabled:opacity-50 text-white text-sm"
+            >
+              Next
+            </button>
           </div>
         </section>
       </main>
 
+      {/* Edit Modal */}
       {editIndex !== null && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-md text-black max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold mb-4">Edit Product</h2>
             <div className="space-y-3">
               <div>
-                <label className="text-xs font-bold text-gray-500 block mb-1">ชื่อสินค้า</label>
-                <input 
-                  className="border p-2 w-full rounded focus:ring-2 focus:ring-blue-400 outline-none" 
-                  value={editForm.name} 
-                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} 
+                <label className="text-xs font-bold text-gray-500 block mb-1">
+                  ชื่อสินค้า
+                </label>
+                <input
+                  className="border p-2 w-full rounded focus:ring-2 focus:ring-blue-400 outline-none"
+                  value={editForm.name}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, name: e.target.value })
+                  }
                 />
               </div>
 
               <div>
-                <label className="text-xs font-bold text-gray-500 block mb-1">หมวดหมู่</label>
-                <select 
-                  className="border p-2 w-full rounded focus:ring-2 focus:ring-blue-400 outline-none" 
-                  value={editForm.category} 
-                  onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
+                <label className="text-xs font-bold text-gray-500 block mb-1">
+                  หมวดหมู่
+                </label>
+                <select
+                  className="border p-2 w-full rounded focus:ring-2 focus:ring-blue-400 outline-none"
+                  value={editForm.category}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, category: e.target.value })
+                  }
                 >
                   <option value="">-- Select Category --</option>
                   {CATEGORIES.map((cat) => (
@@ -249,46 +333,70 @@ export const AdminProducts = () => {
                   ))}
                 </select>
               </div>
-              
+
               <div>
-                <label className="text-xs font-bold text-gray-500 block mb-1">คำอธิบาย</label>
-                <textarea 
-                  className="border p-2 w-full rounded focus:ring-2 focus:ring-blue-400 outline-none resize-none" 
+                <label className="text-xs font-bold text-gray-500 block mb-1">
+                  คำอธิบาย
+                </label>
+                <textarea
+                  className="border p-2 w-full rounded focus:ring-2 focus:ring-blue-400 outline-none resize-none"
                   rows="4"
-                  value={editForm.description} 
-                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} 
+                  value={editForm.description}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, description: e.target.value })
+                  }
                   placeholder="กรอกคำอธิบายสินค้า"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-bold text-gray-500 block mb-1">ราคา (฿)</label>
-                  <input 
-                    className="border p-2 w-full rounded focus:ring-2 focus:ring-blue-400 outline-none" 
-                    type="number" 
+                  <label className="text-xs font-bold text-gray-500 block mb-1">
+                    ราคา (฿)
+                  </label>
+                  <input
+                    className="border p-2 w-full rounded focus:ring-2 focus:ring-blue-400 outline-none"
+                    type="number"
                     min="0"
                     step="0.01"
-                    value={editForm.price} 
-                    onChange={(e) => setEditForm({ ...editForm, price: e.target.value })} 
+                    value={editForm.price}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, price: e.target.value })
+                    }
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-gray-500 block mb-1">จำนวนสต๊อก</label>
-                  <input 
-                    className="border p-2 w-full rounded focus:ring-2 focus:ring-blue-400 outline-none" 
-                    type="number" 
+                  <label className="text-xs font-bold text-gray-500 block mb-1">
+                    จำนวนสต๊อก
+                  </label>
+                  <input
+                    className="border p-2 w-full rounded focus:ring-2 focus:ring-blue-400 outline-none"
+                    type="number"
                     min="0"
-                    value={editForm.stock} 
-                    onChange={(e) => setEditForm({ ...editForm, stock: e.target.value })} 
+                    value={editForm.stock}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, stock: e.target.value })
+                    }
                   />
                 </div>
               </div>
             </div>
             <div className="flex justify-end gap-2 mt-6 border-t pt-4">
-              <button onClick={closeModal} className="px-4 py-2 border rounded-lg hover:bg-gray-100">ยกเลิก</button>
-              <button onClick={saveEdit} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-md">บันทึกข้อมูล</button>
+              <button
+                onClick={closeModal}
+                className="px-4 py-2 border rounded-lg hover:bg-gray-100"
+                disabled={saving}
+              >
+                ยกเลิก
+              </button>
+              <button
+                onClick={saveEdit}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-md disabled:opacity-50"
+                disabled={saving}
+              >
+                {saving ? "กำลังบันทึก..." : "บันทึกข้อมูล"}
+              </button>
             </div>
           </div>
         </div>
@@ -296,3 +404,7 @@ export const AdminProducts = () => {
     </div>
   );
 };
+
+
+
+
