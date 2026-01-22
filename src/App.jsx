@@ -102,8 +102,8 @@ function App() {
   richColors 
   duration={1700}
   />
-  <RouterProvider router={router} />;
+  <RouterProvider router={router} />
   </>
 }
-
+  
 export default App;
