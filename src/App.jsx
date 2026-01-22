@@ -22,13 +22,12 @@ const router = createBrowserRouter([
     path: "/",
     element: <Layout />,
     children: [
-      // ✅ หน้าหลัก
       {
         index: true,
         element: <Home />,
       },
 
-      // ✅ หน้าสาธารณะ (ไม่ต้องล็อกอิน)
+      // หน้าสาธารณะ
       {
         path: "products",
         element: <Products />,
@@ -36,10 +35,6 @@ const router = createBrowserRouter([
       {
         path: "products/:id",
         element: <ProductDetail />,
-      },
-      {
-        path: "cart",
-        element: <Cart />,
       },
       {
         path: "login",
@@ -50,10 +45,14 @@ const router = createBrowserRouter([
         element: <Register />,
       },
 
-      // ✅ หน้าที่ต้องล็อกอินก่อน
+      // ✅ หน้าที่ต้อง login และเป็น User เท่านั้น
       {
-        element: <ProtectedRoute />,
+        element: <ProtectedRoute requireUser={true} />,
         children: [
+          {
+            path: "cart",
+            element: <Cart />,
+          },
           {
             path: "dashboard",
             element: <UserDashboard />,
@@ -70,11 +69,10 @@ const router = createBrowserRouter([
             path: "payment",
             element: <Payment />,
           },
-          
         ],
       },
 
-      // ✅ หน้า Admin (ควรมี AdminRoute แยก)
+      // ✅ หน้า Admin
       {
         element: <ProtectedRoute requireAdmin={true} />,
         children: [
@@ -96,9 +94,14 @@ const router = createBrowserRouter([
   },
 ]);
 
+
 function App() {
   return <>
-  <Toaster position="top-right" richColors />
+  <Toaster 
+  position="top-right" 
+  richColors 
+  duration={1700}
+  />
   <RouterProvider router={router} />;
   </>
 }

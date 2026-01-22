@@ -1,8 +1,9 @@
 import axios from 'axios';
+import { config } from "../config/config";
 
 // Create axios instance
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: `${config.apiUrl}/api`,
   headers: {
     'Content-Type': 'application/json'
   }
@@ -34,15 +35,14 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       const currentPath = window.location.pathname;
-      const isAuthPage = currentPath === '/login' || currentPath === '/register';
-      const isAuthMeRequest = error.config?.url === '/auth/me';
-      
-      // การจัดการ ถ้าไม่ใช่ข้อยกเว้น 
-      // ระบบจะสั่ง Logout ทันที (ลบ Token ในเครื่องทิ้ง) และส่งผู้ใช้กลับไปหน้า Login
-      if (!isAuthPage && !isAuthMeRequest) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        window.location.href = '/login';
+      // ไม่ logout ถ้าอยู่หน้า login หรือ register
+
+      if (
+        !currentPath.includes("/login") &&
+        !currentPath.includes("/register")
+      ) {
+        localStorage.removeItem("token");
+        window.location.href = "/login";
       }
     }
     return Promise.reject(error);
@@ -62,9 +62,9 @@ export const authAPI = {
 //ที่อยู่
 export const addressAPI = {
   getAll: () => api.get("/auth/addresses"),
-  create: (data) => api.post("/auth/addresses", data),
+  add: (data) => api.post("/auth/addresses", data),
   update: (id, data) => api.put(`/auth/addresses/${id}`, data),
-  remove: (id) => api.delete(`/auth/addresses/${id}`),
+  delete: (id) => api.delete(`/auth/addresses/${id}`),
   setDefault: (id) => api.put(`/auth/addresses/${id}/default`),
 };
 
@@ -80,21 +80,23 @@ export const productAPI = {
   delete: (id) => api.delete(`/products/${id}`)
 };
 
+
 // Order API    เกี่ยวกับการสั่งซื้อ (สร้างออเดอร์, ดูประวัติการสั่งซื้อ)
 export const orderAPI = {
   create: (data) => api.post('/orders', data),
   getMyOrders: () => api.get('/orders/myorders'),
   getById: (id) => api.get(`/orders/${id}`),
   getAll: () => api.get('/orders'),
-  updateStatus: (id, status) => api.put(`/orders/${id}/status`, { status })
+  updateStatus: (id, status) => api.put(`/orders/${id}/status`, { status }),
+  delete: (id) => api.delete(`/orders/${id}`)
 };
 
 
 // Cart API    เกี่ยวกับตะกร้า (ดู/อัปเดต/ล้าง)
 export const cartAPI = {
   get: () => api.get('/cart'),
-  upsert: (items) => api.put('/cart', { items }),   // แนะนำให้ backend ทำ upsert ที่ PUT
   create: (items) => api.post('/cart', { items }),  // เผื่อ backend แยก POST
+  upsert: (items) => api.put('/cart', { items }),   // แนะนำให้ backend ทำ upsert ที่ PUT
   clear: () => api.delete('/cart')
 };
 

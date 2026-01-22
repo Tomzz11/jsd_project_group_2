@@ -1,26 +1,32 @@
-// context/CartContext.jsx
-import { createContext, useContext, useState, useEffect } from 'react';
-import * as cartUtils from '../utils/cartUtils';
-import { useAuth } from './AuthContext'; // ใช้ AuthContext ที่มีอยู่
+import { createContext, useContext, useState, useEffect } from "react";
+import * as cartUtils from "../utils/cartUtils";
+import { useAuth } from "./AuthContext";
 
 const CartContext = createContext();
 
 export const useCart = () => {
   const context = useContext(CartContext);
   if (!context) {
-    throw new Error('useCart must be used within CartProvider');
+    throw new Error("useCart must be used within CartProvider");
   }
   return context;
 };
 
 export const CartProvider = ({ children }) => {
-  const { user } = useAuth(); // ✅ ใช้ user จาก AuthContext
+  const { user } = useAuth();
   const [cartItems, setCartItems] = useState([]);
   const [cartCount, setCartCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  // โหลดตะกร้าเมื่อเริ่มต้น หรือเมื่อ user เปลี่ยน
+  // ✅ โหลดตะกร้าเมื่อ user เปลี่ยน (Admin ไม่โหลด cart)
   useEffect(() => {
+    if (user?.role === "admin") {
+      setCartItems([]);
+      setCartCount(0);
+      setLoading(false);
+      return;
+    }
+
     loadCart();
   }, [user]);
 
@@ -31,7 +37,7 @@ export const CartProvider = ({ children }) => {
       setCartItems(items);
       updateCartCount(items);
     } catch (error) {
-      console.error('Error loading cart:', error);
+      console.error("Error loading cart:", error);
     } finally {
       setLoading(false);
     }
@@ -42,14 +48,19 @@ export const CartProvider = ({ children }) => {
     setCartCount(count);
   };
 
+  // ✅ Admin ไม่สามารถเพิ่มสินค้าลงตะกร้า
   const addToCart = async (product, quantity = 1) => {
+    if (user?.role === "admin") {
+      return false;
+    }
+
     try {
       const updatedItems = await cartUtils.addToCart(product, quantity);
       setCartItems(updatedItems);
       updateCartCount(updatedItems);
       return true;
     } catch (error) {
-      console.error('Error adding to cart:', error);
+      console.error("Error adding to cart:", error);
       return false;
     }
   };
@@ -60,7 +71,7 @@ export const CartProvider = ({ children }) => {
       setCartItems(updatedItems);
       updateCartCount(updatedItems);
     } catch (error) {
-      console.error('Error removing from cart:', error);
+      console.error("Error removing from cart:", error);
     }
   };
 
@@ -69,13 +80,16 @@ export const CartProvider = ({ children }) => {
       await removeFromCart(productId);
       return;
     }
-    
+
     try {
-      const updatedItems = await cartUtils.updateCartItemQuantity(productId, quantity);
+      const updatedItems = await cartUtils.updateCartItemQuantity(
+        productId,
+        quantity
+      );
       setCartItems(updatedItems);
       updateCartCount(updatedItems);
     } catch (error) {
-      console.error('Error updating quantity:', error);
+      console.error("Error updating quantity:", error);
     }
   };
 
@@ -85,7 +99,7 @@ export const CartProvider = ({ children }) => {
       setCartItems([]);
       setCartCount(0);
     } catch (error) {
-      console.error('Error clearing cart:', error);
+      console.error("Error clearing cart:", error);
     }
   };
 
@@ -93,24 +107,33 @@ export const CartProvider = ({ children }) => {
     return cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   };
 
-  // Sync cart เมื่อ login
+  // ✅ Sync cart เมื่อ login (สำหรับ user เท่านั้น)
   const syncCartOnLogin = async () => {
+    if (user?.role === "admin") {
+      setCartItems([]);
+      setCartCount(0);
+      return [];
+    }
+
     try {
       const mergedCart = await cartUtils.syncCartOnLogin();
       setCartItems(mergedCart);
       updateCartCount(mergedCart);
+      return mergedCart;
     } catch (error) {
-      console.error('Error syncing cart on login:', error);
+      console.error("Error syncing cart on login:", error);
+      return [];
     }
   };
 
-  // Sync cart เมื่อ logout
+  // ✅ Sync cart เมื่อ logout
   const syncCartOnLogout = async () => {
     try {
       await cartUtils.syncCartOnLogout();
-      await loadCart(); // โหลด cart ใหม่จาก localStorage
+      setCartItems([]);
+      setCartCount(0);
     } catch (error) {
-      console.error('Error syncing cart on logout:', error);
+      console.error("Error syncing cart on logout:", error);
     }
   };
 
@@ -134,3 +157,5 @@ export const CartProvider = ({ children }) => {
     </CartContext.Provider>
   );
 };
+
+

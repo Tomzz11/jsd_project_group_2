@@ -134,7 +134,7 @@ export const AdminProducts = () => {
           </li>
           <li>
             <button onClick={() => navigate("/admin/products")} className="flex gap-3 items-center p-2 rounded bg-sky-400/40 w-full  font-semibold text-indigo-500">
-              Manage List
+              Manage Lists
             </button>
           </li>
           <li>

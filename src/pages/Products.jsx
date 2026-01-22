@@ -1,12 +1,11 @@
-// Products.jsx - หน้า Product List
 import { useState, useEffect } from "react";
-import { useSearchParams, Link } from "react-router-dom";
+import { useSearchParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { FaSearch, FaFilter, FaTimes } from "react-icons/fa";
 import { productAPI } from "../services/api";
 import { Card, CardContent } from "@/components/ui/card";
-import { useCart } from '../context/CartContext';
-import { toast } from 'sonner';
-import { duration } from "moment/moment";
+import { useCart } from "../context/CartContext";
+import { useAuth } from "../context/AuthContext";
+import { toast } from "sonner";
 
 const Products = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -16,7 +15,7 @@ const Products = () => {
     currentPage: 1,
     totalPages: 0,
     totalProducts: 0,
-    hasMore: false
+    hasMore: false,
   });
   const [search, setSearch] = useState(searchParams.get("search") || "");
   const [category, setCategory] = useState(
@@ -24,7 +23,10 @@ const Products = () => {
   );
   const [showFilters, setShowFilters] = useState(false);
 
-  const { addToCart } = useCart(); // ✅ เอาไว้ข้างบน
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { addToCart } = useCart();
+  const { user, isAdmin } = useAuth();
 
   const categories = [
     { label: "ทั้งหมด", value: "all" },
@@ -49,17 +51,18 @@ const Products = () => {
       };
 
       const response = await productAPI.getAll(params);
-      
+
       if (response.data?.success) {
         setProducts(response.data.data || []);
-        setPagination(response.data.pagination || {
-          currentPage: 1,
-          totalPages: 0,
-          totalProducts: 0,
-          hasMore: false
-        });
+        setPagination(
+          response.data.pagination || {
+            currentPage: 1,
+            totalPages: 0,
+            totalProducts: 0,
+            hasMore: false,
+          }
+        );
       }
-      console.log(response);
     } catch (error) {
       console.error("Error fetching products:", error);
       setProducts([]);
@@ -106,22 +109,37 @@ const Products = () => {
     setSearchParams({});
   };
 
-  // ✅ แก้ให้เป็น async function
   const handleAddToCart = async (product) => {
+    // ✅ เช็คว่า login หรือยัง
+    if (!user) {
+      toast.error("กรุณาเข้าสู่ระบบ", {
+        description: "คุณต้องเข้าสู่ระบบก่อนเพิ่มสินค้า",
+      });
+      navigate("/login", { state: { from: location } });
+      return;
+    }
+
+    // ✅ Admin ไม่สามารถเพิ่มสินค้า
+    if (isAdmin) {
+      toast.error("Admin ไม่สามารถเพิ่มสินค้าลงตะกร้าได้");
+      return;
+    }
+
     try {
       const success = await addToCart(product, 1);
       if (success) {
-        toast.success(`เพิ่ม ${product.name} ลงตะกร้าแล้ว!`,{duration:1000,});
+        toast.success(`เพิ่ม ${product.name} ลงตะกร้าแล้ว!`);
       } else {
-        toast.error('ไม่สามารถเพิ่มสินค้าได้',{duration:1000,});
+        toast.error("ไม่สามารถเพิ่มสินค้าได้");
       }
     } catch (error) {
-      console.error('Add to cart error:', error);
-      toast.error('เกิดข้อผิดพลาดในการเพิ่มสินค้า',{duration:1000,});
+      console.error("Add to cart error:", error);
+      toast.error("เกิดข้อผิดพลาดในการเพิ่มสินค้า");
     }
   };
 
-  const hasFilters = searchParams.get("search") || searchParams.get("category");
+  const hasFilters =
+    searchParams.get("search") || searchParams.get("category");
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -147,7 +165,7 @@ const Products = () => {
                   placeholder="ค้นหาสินค้า..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                 />
                 <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               </div>
@@ -170,7 +188,7 @@ const Products = () => {
                   onClick={() => handleCategoryChange(cat.value)}
                   className={`px-4 py-2 rounded-lg transition-colors ${
                     category === cat.value
-                      ? "bg-primary-500 text-white"
+                      ? "bg-primary text-white"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
@@ -191,7 +209,7 @@ const Products = () => {
                     onClick={() => handleCategoryChange(cat.value)}
                     className={`px-4 py-2 rounded-lg transition-colors ${
                       category === cat.value
-                        ? "bg-primary-500 text-white"
+                        ? "bg-primary text-white"
                         : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                     }`}
                   >
@@ -207,12 +225,12 @@ const Products = () => {
             <div className="mt-4 pt-4 border-t border-gray-200 flex items-center gap-2">
               <span className="text-sm text-gray-500">ตัวกรอง:</span>
               {searchParams.get("search") && (
-                <span className="inline-flex items-center gap-1 px-3 py-1 bg-primary-100 text-primary-700 rounded-full text-sm">
+                <span className="inline-flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary rounded-full text-sm">
                   ค้นหา: {searchParams.get("search")}
                 </span>
               )}
               {searchParams.get("category") && (
-                <span className="inline-flex items-center gap-1 px-3 py-1 bg-primary-100 text-primary-700 rounded-full text-sm">
+                <span className="inline-flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary rounded-full text-sm">
                   {
                     categories.find(
                       (c) => c.value === searchParams.get("category")
@@ -234,14 +252,17 @@ const Products = () => {
         {/* Products Grid */}
         {loading ? (
           <div className="flex justify-center items-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
           </div>
         ) : products.length > 0 ? (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {products.map((product) => (
-                <Card key={product._id} className="min-h-[480px] overflow-hidden rounded-3xl shadow-md hover:shadow-xl transition-shadow">
-                  {/* Image area */}
+                <Card
+                  key={product._id}
+                  className="min-h-[480px] overflow-hidden rounded-3xl shadow-md hover:shadow-xl transition-shadow"
+                >
+                  {/* Image */}
                   <Link to={`/products/${product._id}`}>
                     <div className="min-h-[200px] bg-muted cursor-pointer">
                       <img
@@ -253,10 +274,10 @@ const Products = () => {
                     </div>
                   </Link>
 
-                  {/* Content area */}
+                  {/* Content */}
                   <CardContent className="flex h-[220px] flex-col p-6">
                     <Link to={`/products/${product._id}`}>
-                      <h3 className="line-clamp-2 text-base font-semibold hover:text-primary-600 transition-colors">
+                      <h3 className="line-clamp-2 text-base font-semibold hover:text-primary transition-colors">
                         {product.name}
                       </h3>
                     </Link>
@@ -272,21 +293,32 @@ const Products = () => {
 
                       {product.originalPrice && (
                         <p className="text-sm text-muted-foreground line-through">
-                          ฿{Number(product.originalPrice).toLocaleString("th-TH")}
+                          ฿
+                          {Number(product.originalPrice).toLocaleString("th-TH")}
                         </p>
                       )}
                     </div>
 
-                    {/* Push actions to bottom */}
+                    {/* Action Buttons */}
                     <div className="mt-auto flex gap-2">
-                      <button
-                        className="flex-1 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
-                        onClick={() => handleAddToCart(product)}
+                      {/* ✅ ซ่อนปุ่ม Add to Cart สำหรับ Admin */}
+                      {!isAdmin && (
+                        <button
+                          className="flex-1 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
+                          onClick={() => handleAddToCart(product)}
+                        >
+                          Add to cart
+                        </button>
+                      )}
+                      <Link
+                        to={`/products/${product._id}`}
+                        className={isAdmin ? "flex-1" : "flex-shrink-0"}
                       >
-                        Add to cart
-                      </button>
-                      <Link to={`/products/${product._id}`} className="flex-shrink-0">
-                        <button className="rounded-xl border px-4 py-2 text-sm font-semibold hover:bg-muted">
+                        <button
+                          className={`rounded-xl border px-4 py-2 text-sm font-semibold hover:bg-muted ${
+                            isAdmin ? "w-full" : ""
+                          }`}
+                        >
                           View
                         </button>
                       </Link>
@@ -313,7 +345,7 @@ const Products = () => {
                     onClick={() => handlePageChange(idx + 1)}
                     className={`w-10 h-10 rounded-lg ${
                       pagination.currentPage === idx + 1
-                        ? "bg-primary-500 text-white"
+                        ? "bg-primary text-white"
                         : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                     }`}
                   >
@@ -342,7 +374,7 @@ const Products = () => {
             </p>
             <button
               onClick={clearFilters}
-              className="text-primary-600 hover:text-primary-700 font-medium"
+              className="text-primary hover:text-primary/80 font-medium"
             >
               ล้างตัวกรองทั้งหมด
             </button>
@@ -354,3 +386,6 @@ const Products = () => {
 };
 
 export default Products;
+
+
+
